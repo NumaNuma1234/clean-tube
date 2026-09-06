@@ -772,6 +772,46 @@
 
 <script>
 (async function(){
+  // ---- YouTube IFrame APIの準備完了コールバックは真っ先に登録する ----
+  // (この下にFirebase同期のfetch待ち等があるため、後回しにするとAPI側の準備完了より
+  //  登録が遅れてコールバックが一生呼ばれず、動画が読み込めなくなることがあるため)
+  var ytPlayer = null;
+  var apiReady = false;
+  var pendingPlay = null;
+
+  window.onYouTubeIframeAPIReady = function(){
+    // クリックされてから YT.Player を生成すると読み込みが遅いので、
+    // API準備完了の時点で裏側(非表示のオーバーレイ内)にプレイヤーを先に用意しておく。
+    // ユーザーがクリックした際は loadVideoById を呼ぶだけで済むため体感速度が大きく改善する。
+    // ここで videoId を指定せずに生成すると、動画未選択の状態として
+    // YouTube側の「その他の動画」候補グリッドが表示されたままになってしまうため、
+    // 何か1本(Google公式のIFrame APIデモ動画)をcue状態(再生はしない)で読み込ませておく。
+    ytPlayer = new YT.Player('player', {
+      videoId: 'M7lc1UVf-VE',
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: { autoplay: 0, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3 },
+      events: {
+        onReady: function(){
+          apiReady = true;
+          hideVideoLoading();
+          if(pendingPlay){
+            var p = pendingPlay; pendingPlay = null;
+            loadIntoPlayer(p.id, p.startSeconds);
+          }
+        },
+        onStateChange: function(e){
+          if(e.data !== -1){ hideVideoLoading(); }
+          enforceEcoQuality();
+          handlePlayerStateChange(e.data);
+        }
+      }
+    });
+  };
+  // 万一、上の登録より先にAPI側の読み込みが完了していた場合の保険(念のための二重チェック)
+  if(window.YT && window.YT.Player && !ytPlayer){
+    window.onYouTubeIframeAPIReady();
+  }
+
   var KEY_STORAGE = 'clean-tube-api-key';
   var CHAN_STORAGE = 'clean-tube-channels';
   var COUNTER_STORAGE = 'clean-tube-daily-counter';
@@ -1489,40 +1529,7 @@
     }
   }
 
-  var ytPlayer = null;
-  var apiReady = false;
-  var pendingPlay = null;
 
-  window.onYouTubeIframeAPIReady = function(){
-    // クリックされてから YT.Player を生成すると読み込みが遅いので、
-    // API準備完了の時点で裏側(非表示のオーバーレイ内)にプレイヤーを先に用意しておく。
-    // ユーザーがクリックした際は loadVideoById を呼ぶだけで済むため体感速度が大きく改善する。
-    // ここで videoId を指定せずに生成すると、動画未選択の状態として
-    // YouTube側の「その他の動画」候補グリッドが表示されたままになってしまうため、
-    // 何か1本(Google公式のIFrame APIデモ動画)をcue状態(再生はしない)で読み込ませておく。
-    ytPlayer = new YT.Player('player', {
-      videoId: 'M7lc1UVf-VE',
-      host: 'https://www.youtube-nocookie.com',
-      playerVars: { autoplay: 0, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3 },
-      events: {
-        onReady: function(){
-          apiReady = true;
-          hideVideoLoading();
-          if(pendingPlay){
-            var p = pendingPlay; pendingPlay = null;
-            loadIntoPlayer(p.id, p.startSeconds);
-          }
-        },
-        onStateChange: function(e){
-          if(e.data !== -1){ hideVideoLoading(); }
-          enforceEcoQuality();
-          handlePlayerStateChange(e.data);
-        }
-      }
-    });
-  };
-
-  // ---- 音声エコモード: 通信量節約のため常に最低画質(音声中心)で再生する ----
   // 注: YouTube側は setPlaybackQuality による強制を現在ほぼ無視するため、
   // 「前回視聴時の画質を引き継ぐだけ」になりがち。そこで実際に効く方法として、
   // プレイヤーの表示サイズそのものを小さくする(YouTubeの自動画質選択は表示サイズも見て決めている)。
