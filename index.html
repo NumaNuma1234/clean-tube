@@ -378,32 +378,38 @@
   }
   .radio-time{ font-family:'DotGothic16', monospace; color:rgba(243,230,200,0.75); font-size:13px; letter-spacing:0.08em; }
 
-  .radio-ctrl-wrap{ position:relative; width:130px; height:130px; display:flex; align-items:center; justify-content:center; margin:4px 0 2px; }
+  .radio-ctrl-wrap{ position:relative; width:132px; height:132px; display:flex; align-items:center; justify-content:center; margin:4px 0 2px; }
   .radio-ctrl-wrap::before{
-    content:''; position:absolute; inset:0; border-radius:50%;
-    background: radial-gradient(circle, rgba(255,190,110,0.55), transparent 70%);
-    filter: blur(8px);
-    animation: ctrlHalo 2.2s ease-in-out infinite;
+    content:''; position:absolute; inset:-3px; border-radius:50%;
+    background: conic-gradient(from 90deg, rgba(255,205,130,0.9), rgba(255,205,130,0.05) 30%, rgba(255,205,130,0.05) 70%, rgba(255,205,130,0.9));
+    filter: blur(0.5px);
+    opacity:0.7;
+    animation: ctrlHalo 2.6s ease-in-out infinite;
   }
-  .radio-ctrl-wrap.paused::before{ animation-play-state:paused; opacity:0.4; }
+  .radio-ctrl-wrap.paused::before{ animation-play-state:paused; opacity:0.28; }
   @keyframes ctrlHalo{
-    0%,100%{ opacity:0.55; transform:scale(0.92); }
-    50%{ opacity:0.95; transform:scale(1.06); }
+    0%,100%{ opacity:0.55; transform:scale(0.98) rotate(0deg); }
+    50%{ opacity:0.85; transform:scale(1.02) rotate(6deg); }
   }
   .radio-ctrl-btn{
-    position:relative; width:116px; height:116px; border-radius:50%;
-    background: linear-gradient(155deg, #ffd591 0%, #d98a3d 55%, #a9622e 100%);
-    border:3px solid rgba(255,230,190,0.55);
-    color:#3C2A19; font-size:44px;
+    position:relative; width:118px; height:118px; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255,255,255,0.14), rgba(255,255,255,0) 42%),
+      linear-gradient(165deg, rgba(70,50,32,0.92) 0%, rgba(24,17,10,0.95) 100%);
+    border:1px solid rgba(255,214,150,0.4);
+    color:#F6E9CE;
     display:flex; align-items:center; justify-content:center;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     box-shadow:
-      0 12px 30px rgba(0,0,0,0.48),
-      inset 0 2px 4px rgba(255,255,255,0.55),
-      inset 0 -8px 14px rgba(90,50,15,0.35);
-    transition: transform 0.15s ease;
+      0 16px 34px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.16),
+      inset 0 -14px 22px rgba(0,0,0,0.4),
+      0 0 0 6px rgba(255,205,130,0.05);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
   }
-  .radio-ctrl-btn:active{ transform:scale(0.93); }
-  .radio-ctrl-btn .glyph{ transform:translateX(2px); line-height:1; }
+  .radio-ctrl-btn:active{ transform:scale(0.92); }
+  .radio-ctrl-btn .ctrl-icon{ filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+  .radio-ctrl-btn .icon-play{ margin-left:5px; }
 
   .radio-speed-row{
     display:flex; gap:2px; padding:4px; margin-top:2px;
@@ -552,7 +558,24 @@
     box-shadow:0 2px 6px rgba(58,42,26,0.18);
   }
   .gacha-choice-hide-btn:active{ transform:scale(0.9); }
-  .gacha-choice-card.replacing{ opacity:0.35; pointer-events:none; }
+  .gacha-choice-card.penalty{
+    justify-content:center; gap:14px; cursor:default;
+    background: linear-gradient(180deg, rgba(120,90,50,0.06), transparent);
+    animation:none; opacity:1; pointer-events:none;
+  }
+  .gacha-penalty-ring-wrap{ position:relative; width:64px; height:64px; flex:0 0 auto; }
+  .gacha-penalty-ring{ width:100%; height:100%; transform:rotate(-90deg); }
+  .gp-ring-bg{ fill:none; stroke:var(--border); stroke-width:6; opacity:0.5; }
+  .gp-ring-fg{
+    fill:none; stroke:var(--accent); stroke-width:6; stroke-linecap:round;
+    stroke-dasharray:169.6; stroke-dashoffset:0;
+    transition: stroke-dashoffset 0.92s linear;
+  }
+  .gacha-penalty-num{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'DotGothic16', monospace; font-size:19px; color:var(--text);
+  }
+  .gacha-penalty-label{ font-size:11.5px; color:var(--text-muted); line-height:1.6; }
   .gacha-choice-card{ cursor:pointer; }
   .gacha-choice-card img{
     width:104px; aspect-ratio:16/10; object-fit:cover; border-radius:11px; flex:0 0 auto;
@@ -693,7 +716,15 @@
       <div class="radio-title" id="radioTitle">再生中の音声</div>
       <div class="radio-time" id="radioTime">00:00 / 00:00</div>
       <div class="radio-ctrl-wrap" id="radioCtrlWrap">
-        <button class="radio-ctrl-btn" id="radioPlayPauseBtn"><span class="glyph">⏸</span></button>
+        <button class="radio-ctrl-btn" id="radioPlayPauseBtn" aria-label="再生/一時停止">
+          <svg class="ctrl-icon icon-pause" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true">
+            <rect x="6" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+            <rect x="13.5" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+          </svg>
+          <svg class="ctrl-icon icon-play" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true" style="display:none;">
+            <path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.5-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14z" fill="currentColor"></path>
+          </svg>
+        </button>
       </div>
       <div class="radio-speed-row" id="radioSpeedRow">
         <button class="radio-speed-btn" data-speed="0.75">0.75x</button>
@@ -1197,30 +1228,73 @@
   function isExcludedId(id){
     return loadWatched().indexOf(id) !== -1 || loadHidden().indexOf(id) !== -1;
   }
+
+  var GACHA_HIDE_PENALTY_SECONDS = 15;
+  var GACHA_PENALTY_RING_CIRC = 169.6; // r=27の円周
+
+  function renderGachaPenaltySlot(card, seconds){
+    card.className = 'gacha-choice-card penalty';
+    card.innerHTML =
+      '<div class="gacha-penalty-ring-wrap">' +
+        '<svg class="gacha-penalty-ring" viewBox="0 0 64 64">' +
+          '<circle class="gp-ring-bg" cx="32" cy="32" r="27"></circle>' +
+          '<circle class="gp-ring-fg" id="' + card.id + '-ring" cx="32" cy="32" r="27"></circle>' +
+        '</svg>' +
+        '<span class="gacha-penalty-num">' + seconds + '</span>' +
+      '</div>' +
+      '<div class="gacha-penalty-label">🚫 非表示にしました<br>次の候補まで少し待ちます</div>';
+  }
+
   async function hideGachaCandidate(idx){
     var item = currentGachaPicks[idx];
     if(!item) return;
     markHidden(item.id);
-    var card = document.querySelector('.gacha-choice-card[data-idx="' + idx + '"]');
-    if(card){ card.classList.add('replacing'); }
+    currentGachaPicks[idx] = null; // 差し替えが決まるまで一旦空席にする(重複防止)
 
+    var card = document.querySelector('.gacha-choice-card[data-idx="' + idx + '"]');
+    if(!card) return;
+    card.id = 'gachaPenaltySlot' + idx;
+    card.setAttribute('data-idx', idx);
+    renderGachaPenaltySlot(card, GACHA_HIDE_PENALTY_SECONDS);
+
+    var ringEl = document.getElementById(card.id + '-ring');
+    var numEl = card.querySelector('.gacha-penalty-num');
+    var remaining = GACHA_HIDE_PENALTY_SECONDS;
+    var timer = setInterval(function(){
+      remaining -= 1;
+      if(remaining < 0){ remaining = 0; }
+      if(numEl){ numEl.textContent = remaining; }
+      if(ringEl){ ringEl.style.strokeDashoffset = (GACHA_PENALTY_RING_CIRC * (1 - remaining / GACHA_HIDE_PENALTY_SECONDS)); }
+      if(remaining <= 0){ clearInterval(timer); }
+    }, 1000);
+
+    // 15秒のペナルティと、差し替え候補の取得を並行して進める(体感待ち時間を減らす)
     var replacement = await fetchGachaReplacement();
+    await new Promise(function(resolve){
+      var check = setInterval(function(){
+        if(remaining <= 0){ clearInterval(check); resolve(); }
+      }, 150);
+    });
+
+    // 待っている間にユーザーがキャンセル等で画面を閉じていたら何もしない
+    if(!document.body.contains(card)) return;
+
     if(!replacement){
-      // 差し替え候補がなければ、そのまま枠を消す
-      currentGachaPicks[idx] = null;
-      if(card){ card.remove(); }
+      card.remove();
       return;
     }
     currentGachaPicks[idx] = replacement;
-    if(card){
-      card.innerHTML = gachaCardHtml(replacement, idx);
-      card.classList.remove('replacing');
-      card.classList.add('reveal-shine');
-      bindGachaCard(card, idx);
-    }
+    card.className = 'gacha-choice-card';
+    card.removeAttribute('id');
+    card.innerHTML = gachaCardHtml(replacement, idx);
+    card.classList.add('reveal-shine');
+    bindGachaCard(card, idx);
   }
 
-  document.getElementById('gachaChoiceCancel').addEventListener('click', hideGachaChoices);
+  document.getElementById('gachaChoiceCancel').addEventListener('click', function(){
+    hideGachaChoices();
+    startCooldown(15, 'おまかせを中断しました。少し休憩してから次へ');
+  });
   document.getElementById('gachaChoiceReroll').addEventListener('click', function(){
     hideGachaChoices();
     startCooldown(10, '引き直しにはひと呼吸おきましょう', function(){
@@ -1505,7 +1579,8 @@
     markWatched(id);
 
     document.getElementById('radioTitle').textContent = currentVideoTitle;
-    document.getElementById('radioPlayPauseBtn').querySelector('.glyph').textContent = '⏸';
+    document.getElementById('radioPlayPauseBtn').querySelector('.icon-pause').style.display = '';
+    document.getElementById('radioPlayPauseBtn').querySelector('.icon-play').style.display = 'none';
     document.getElementById('radioDialWrap').classList.remove('paused');
     document.getElementById('radioCtrlWrap').classList.remove('paused');
     startRadioUpdateLoop();
@@ -1578,18 +1653,21 @@
   document.getElementById('radioPlayPauseBtn').addEventListener('click', function(e){
     e.stopPropagation();
     if(!ytPlayer || !ytPlayer.getPlayerState) return;
-    var glyph = this.querySelector('.glyph');
+    var iconPause = this.querySelector('.icon-pause');
+    var iconPlay = this.querySelector('.icon-play');
     var dialWrap = document.getElementById('radioDialWrap');
     var ctrlWrap = document.getElementById('radioCtrlWrap');
     var state = ytPlayer.getPlayerState();
     if(state === 1){
       ytPlayer.pauseVideo();
-      glyph.textContent = '▶';
+      iconPause.style.display = 'none';
+      iconPlay.style.display = '';
       dialWrap.classList.add('paused');
       ctrlWrap.classList.add('paused');
     } else {
       ytPlayer.playVideo();
-      glyph.textContent = '⏸';
+      iconPause.style.display = '';
+      iconPlay.style.display = 'none';
       dialWrap.classList.remove('paused');
       ctrlWrap.classList.remove('paused');
     }
