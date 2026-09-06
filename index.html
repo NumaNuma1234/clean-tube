@@ -27,7 +27,11 @@
     --accent-2: #C98A46;
     --gold: #B8912E;
     --danger: #9B4632;
+    --ai: #33506B;      /* 藍色 - 深く落ち着いた青 */
+    --akane: #A8483C;   /* 茜色 - くすんだ朱赤(判子のような色) */
+    --matcha: #6E7A48;  /* 抹茶色 - くすんだ緑 */
     --radius: 14px;
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.22, 0 0 0 0 0.16, 0 0 0 0 0.1, 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body{ height:100%; }
@@ -46,9 +50,13 @@
   body::before{
     content:'';
     position:fixed; inset:0; pointer-events:none; z-index:0;
+    opacity:0.5;
     background:
+      var(--noise),
       repeating-linear-gradient(0deg, rgba(92,64,41,0.03) 0px, rgba(92,64,41,0.03) 1px, transparent 1px, transparent 3px),
       repeating-linear-gradient(90deg, rgba(92,64,41,0.02) 0px, rgba(92,64,41,0.02) 1px, transparent 1px, transparent 3px);
+    background-size: 140px 140px, auto, auto;
+    mix-blend-mode: multiply;
   }
   h1{
     position:relative; z-index:1;
@@ -63,9 +71,12 @@
     justify-content:space-between;
     color:#F3E6C8;
     background:
+      var(--noise),
       repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px),
       linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 5px rgba(0,0,0,0.2);
   }
   .gear{ background:none; border:none; color:#E8D9B5; font-size:18px; padding:4px; }
   .counter{ position:relative; z-index:1; font-family:'DotGothic16', monospace; font-size:13px; color:var(--text-secondary); padding:8px 16px 2px; letter-spacing:0.02em; }
@@ -73,19 +84,30 @@
   .wisdom-box{
     position:relative; z-index:1;
     margin:8px 16px 14px;
-    padding:13px 16px;
+    padding:13px 16px 13px 18px;
     background:
+      var(--noise),
       repeating-linear-gradient(0deg, rgba(120,90,50,0.045) 0px, rgba(120,90,50,0.045) 1px, transparent 1px, transparent 3px),
       var(--surface);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
     border:1px dashed var(--border);
+    border-left:3px solid var(--ai);
     border-radius:10px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px rgba(60,42,20,0.07);
+    box-shadow: inset 0 1px 3px rgba(51,80,107,0.10), inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px rgba(60,42,20,0.07);
     cursor:pointer;
   }
-  .wisdom-label{ font-family:'DotGothic16', monospace; font-size:10px; color:var(--text-muted); letter-spacing:0.18em; margin-bottom:5px; }
+  .wisdom-label{ font-family:'DotGothic16', monospace; font-size:10px; color:var(--ai); letter-spacing:0.18em; margin-bottom:5px; }
   .wisdom-text{ font-family:'Shippori Mincho', serif; font-style:italic; font-size:13.5px; line-height:1.75; color:var(--text-secondary); }
 
-  .settings{ display:none; margin:0 16px 12px; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); padding:14px; }
+  .settings{
+    display:none; margin:0 16px 12px;
+    background: var(--noise), var(--surface);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
+    border:0.5px solid var(--border); border-radius:var(--radius); padding:14px;
+    box-shadow: inset 0 1px 3px rgba(58,42,26,0.05);
+  }
   .settings.open{ display:block; }
   .label{ font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
   .row{ display:flex; gap:8px; }
@@ -127,11 +149,16 @@
   .result-item{
     display:flex; flex-direction:column;
     cursor:pointer;
-    background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background:
+      var(--noise),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
     border:0.5px solid var(--border);
     border-radius:12px; padding:0; overflow:hidden; text-align:left;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -1px 2px rgba(58,42,26,0.06),
       0 1px 2px rgba(58,42,26,0.05),
       0 4px 10px rgba(58,42,26,0.06);
     transition: transform 0.15s ease;
@@ -211,7 +238,7 @@
     border-radius:20px; margin:0 8px;
     box-shadow:0 12px 32px rgba(0,0,0,0.18);
   }
-  .gacha-row{ padding: 0 16px 10px; }
+  .gacha-row{ padding: 0 16px 12px; }
   .gacha-big{
     position:relative;
     display:flex; align-items:center; justify-content:center; gap:8px;
@@ -243,15 +270,15 @@
     100%{ left:130%; }
   }
   .quick-tags{
-    display:flex; gap:10px; overflow-x:auto; -webkit-overflow-scrolling:touch;
-    padding: 0 16px 10px; scrollbar-width:none;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:8px;
+    padding: 0 16px 12px;
   }
-  .quick-tags::-webkit-scrollbar{ display:none; }
+  .quick-tags:empty{ padding:0; }
   .quick-tags button{
     flex:0 0 auto;
-    background:var(--surface-2); border:1px solid var(--border); color:var(--text);
-    border-radius:999px; padding:14px 22px; font-size:16px; font-weight:700;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    background:var(--surface-2); border:1px solid var(--border); color:var(--matcha);
+    border-radius:999px; padding:9px 16px; font-size:13px; font-weight:600;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.5);
     letter-spacing:0.01em;
   }
   .searchbar{
@@ -450,10 +477,14 @@
     display:flex; flex-direction:column; align-items:center; gap:12px;
     padding:36px 30px 30px;
     max-width:280px;
-    background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background:
+      var(--noise),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
     border:0.5px solid var(--border);
     border-radius:26px;
-    box-shadow: 0 14px 34px rgba(58,42,26,0.16), inset 0 1px 0 rgba(255,255,255,0.7);
+    box-shadow: 0 14px 34px rgba(58,42,26,0.16), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -3px 8px rgba(58,42,26,0.05);
     animation: cooldownCardIn 0.4s cubic-bezier(0.22,1.4,0.36,1);
   }
   @keyframes cooldownCardIn{
@@ -491,11 +522,14 @@
   .gacha-choice-panel{
     position:relative; width:100%; max-width:480px;
     background:
+      var(--noise),
       repeating-linear-gradient(0deg, rgba(120,90,50,0.045) 0px, rgba(120,90,50,0.045) 1px, transparent 1px, transparent 3px),
       linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
     border-radius:28px 28px 0 0;
     padding: 22px 16px calc(22px + env(safe-area-inset-bottom));
-    box-shadow: 0 -12px 40px rgba(0,0,0,0.35);
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.35), inset 0 3px 10px rgba(58,42,26,0.06);
     transform: translateY(100%);
     transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
   }
@@ -508,13 +542,18 @@
     position:relative;
     display:flex; align-items:center; gap:12px;
     text-align:left;
-    background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background:
+      var(--noise),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
     border:0.5px solid var(--border);
     border-radius:16px;
     padding:10px;
     overflow:hidden;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -2px 4px rgba(58,42,26,0.05),
       0 4px 14px rgba(58,42,26,0.10);
     opacity:0; transform: translateY(18px) scale(0.94);
     animation: gachaCardIn 0.5s cubic-bezier(0.22,1.4,0.36,1) forwards;
@@ -552,12 +591,12 @@
   .gacha-choice-hide-btn{
     position:absolute; top:-6px; right:-6px; z-index:3;
     width:24px; height:24px; border-radius:50%;
-    background:var(--surface-2); border:1px solid var(--border);
-    color:var(--text-muted); font-size:11px;
+    background:var(--surface-2); border:1.5px solid var(--akane);
+    color:var(--akane); font-size:11px;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 2px 6px rgba(58,42,26,0.18);
+    box-shadow:0 2px 6px rgba(168,72,60,0.25), inset 0 1px 2px rgba(168,72,60,0.08);
   }
-  .gacha-choice-hide-btn:active{ transform:scale(0.9); }
+  .gacha-choice-hide-btn:active{ transform:scale(0.9); background:var(--akane); color:#fff; }
   .gacha-choice-card.penalty{
     justify-content:center; gap:14px; cursor:default;
     background: linear-gradient(180deg, rgba(120,90,50,0.06), transparent);
@@ -592,7 +631,7 @@
     flex:1; padding:12px; border-radius:14px; font-size:13px; font-weight:600;
     background:var(--surface-2); border:0.5px solid var(--border); color:var(--text-secondary);
   }
-  .gacha-choice-reroll{ color:var(--accent); }
+  .gacha-choice-reroll{ color:var(--matcha); }
 
   .chan-row{
     display:flex; align-items:center; justify-content:space-between;
@@ -1377,7 +1416,7 @@
 
   // ---- quick tags ----
   var QUICK_TAGS_STORAGE = 'clean-tube-quick-tags';
-  var quickTags = (localStorage.getItem(QUICK_TAGS_STORAGE) || '動物犬猫癒し,AI勉強,投資勉強').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  var quickTags = (localStorage.getItem(QUICK_TAGS_STORAGE) || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
   document.getElementById('quickTagsInput').value = quickTags.join(',');
 
   function renderQuickTags(){
@@ -1399,13 +1438,11 @@
 
   document.getElementById('saveTagsBtn').addEventListener('click', function(){
     var v = document.getElementById('quickTagsInput').value.trim();
-    if(v){
-      quickTags = v.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-      localStorage.setItem(QUICK_TAGS_STORAGE, quickTags.join(','));
-      pushRemoteState();
-      renderQuickTags();
-      document.getElementById('settingsCard').classList.remove('open');
-    }
+    quickTags = v ? v.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+    localStorage.setItem(QUICK_TAGS_STORAGE, quickTags.join(','));
+    pushRemoteState();
+    renderQuickTags();
+    document.getElementById('settingsCard').classList.remove('open');
   });
 
   // ---- search bar reposition on focus ----
