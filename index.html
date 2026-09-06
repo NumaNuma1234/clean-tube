@@ -1573,10 +1573,15 @@
   function loadIntoPlayer(id, startSeconds){
     if(!apiReady || !ytPlayer || !ytPlayer.loadVideoById){ pendingPlay = { id: id, startSeconds: startSeconds }; return; }
     showVideoLoading();
-    if(startSeconds){
-      ytPlayer.loadVideoById(id, startSeconds);
-    } else {
-      ytPlayer.loadVideoById(id);
+    try{
+      if(startSeconds){
+        ytPlayer.loadVideoById({ videoId: id, startSeconds: startSeconds });
+      } else {
+        ytPlayer.loadVideoById(id);
+      }
+    } catch(e){
+      // 万一失敗したら、開始位置指定なしでもう一度だけ試す
+      try{ ytPlayer.loadVideoById(id); } catch(e2){}
     }
     enforceEcoQuality();
   }
