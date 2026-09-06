@@ -787,7 +787,7 @@
     'clean-tube-gacha-queries',
     'clean-tube-quick-tags','clean-tube-watched-ids','clean-tube-hidden-ids','clean-tube-daily-goal',
     'clean-tube-stamps','clean-tube-stamp-checked-date','clean-tube-total-exp',
-    'clean-tube-last-stop-ts'
+    'clean-tube-last-stop-ts','clean-tube-positions'
   ];
   function collectSyncState(){
     var obj = {};
@@ -826,7 +826,7 @@
 
   await pullRemoteState(); // 他端末のデータがあれば、ここでこの端末に反映してから読み込みを続ける
 
-  // ---- watched history (視聴済みの動画は二度と出さない) ----
+  // ---- watched history (再生位置の記憶などに使う。候補からの除外にはもう使わない) ----
   var WATCHED_STORAGE = 'clean-tube-watched-ids';
   function loadWatched(){
     try{ return JSON.parse(localStorage.getItem(WATCHED_STORAGE) || '[]'); }
@@ -858,16 +858,44 @@
     }
   }
 
-  // 視聴済み・非表示指定のどちらでもない動画だけに絞り込む(フォールバックなし)
+  // 「今後表示しない」指定の動画だけを除外する(視聴済みかどうかは候補選定に影響させない)
   function filterExcluded(items){
-    var w = loadWatched();
     var h = loadHidden();
-    return items.filter(function(item){ return w.indexOf(item.id) === -1 && h.indexOf(item.id) === -1; });
+    return items.filter(function(item){ return h.indexOf(item.id) === -1; });
   }
   // 検索用: 全部除外済みで0件になる場合だけ、手詰まり防止のため元のリストを返す
   function filterUnwatched(items){
     var filtered = filterExcluded(items);
     return filtered.length > 0 ? filtered : items;
+  }
+
+  // ---- 再生位置の記憶(途中でやめた動画を、次に選んだ時に続きから再生する) ----
+  var POSITIONS_STORAGE = 'clean-tube-positions';
+  function loadPositions(){
+    try{ return JSON.parse(localStorage.getItem(POSITIONS_STORAGE) || '{}'); }
+    catch(e){ return {}; }
+  }
+  function savePositionLocal(id, seconds){
+    if(!id) return;
+    var p = loadPositions();
+    if(seconds > 5){
+      p[id] = Math.floor(seconds);
+    } else {
+      delete p[id];
+    }
+    var keys = Object.keys(p);
+    if(keys.length > 300){
+      keys.slice(0, keys.length - 300).forEach(function(k){ delete p[k]; });
+    }
+    localStorage.setItem(POSITIONS_STORAGE, JSON.stringify(p));
+  }
+  function clearPosition(id){
+    if(!id) return;
+    var p = loadPositions();
+    if(p[id] !== undefined){
+      delete p[id];
+      localStorage.setItem(POSITIONS_STORAGE, JSON.stringify(p));
+    }
   }
 
   // ---- daily counter (検索から手動再生した回数のみをカウント) ----
@@ -1201,7 +1229,7 @@
     // まずは残っている予備プールから、まだ除外・表示されていないものを探す
     while(gachaReservePool.length > 0){
       var cand = gachaReservePool.shift();
-      if(!isExcludedId(cand.id) && !currentGachaPicks.some(function(p){ return p.id === cand.id; })){
+      if(!isExcludedId(cand.id) && !currentGachaPicks.some(function(p){ return p && p.id === cand.id; })){
         return cand;
       }
     }
@@ -1213,7 +1241,7 @@
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
       items = filterExcluded(items).filter(function(item){
-        return !currentGachaPicks.some(function(p){ return p.id === item.id; });
+        return !currentGachaPicks.some(function(p){ return p && p.id === item.id; });
       });
       if(items.length === 0) return null;
       items.sort(function(a, b){
@@ -1226,7 +1254,7 @@
     } catch(e){ return null; }
   }
   function isExcludedId(id){
-    return loadWatched().indexOf(id) !== -1 || loadHidden().indexOf(id) !== -1;
+    return loadHidden().indexOf(id) !== -1;
   }
 
   var GACHA_HIDE_PENALTY_SECONDS = 15;
@@ -1269,7 +1297,12 @@
     }, 1000);
 
     // 15秒のペナルティと、差し替え候補の取得を並行して進める(体感待ち時間を減らす)
-    var replacement = await fetchGachaReplacement();
+    var replacement = null;
+    try{
+      replacement = await fetchGachaReplacement();
+    } catch(e){
+      replacement = null;
+    }
     await new Promise(function(resolve){
       var check = setInterval(function(){
         if(remaining <= 0){ clearInterval(check); resolve(); }
@@ -1381,6 +1414,7 @@
   }
 
   // ---- normal search ----
+  var searchRequestId = 0;
   async function doSearch(){
     var errEl = document.getElementById('queryErr');
     var q = queryInput.value.trim();
@@ -1388,6 +1422,11 @@
     document.getElementById('results').innerHTML = '';
     document.getElementById('expPanel').classList.add('hidden');
     queryInput.blur();
+
+    // 検索ボタンのクリックとEnterキーが同時に反応するなど、検索が重なって呼ばれても
+    // 古い方の結果が後から描画されて「おすすめ欄が2つ」に見えることがないようにする
+    searchRequestId += 1;
+    var myRequestId = searchRequestId;
 
     if(!apiKey){
       errEl.textContent = '先に⚙からAPIキーを保存してください';
@@ -1408,6 +1447,7 @@
 
     try{
       var items = await fetchVideos(q, 25);
+      if(myRequestId !== searchRequestId){ return; } // 後から新しい検索が始まっていたら、この結果は捨てる
       spinner.style.display = 'none';
 
       items = items.filter(function(item){
@@ -1425,6 +1465,7 @@
       }
 
       var container = document.getElementById('results');
+      container.innerHTML = ''; // 描画直前にも念のためクリア(二重表示防止)
       items.forEach(function(item){
         var snippet = item.snippet;
         var thumb = (snippet.thumbnails.medium || snippet.thumbnails.default).url;
@@ -1440,6 +1481,7 @@
         container.appendChild(el);
       });
     } catch(e){
+      if(myRequestId !== searchRequestId){ return; }
       spinner.style.display = 'none';
       errEl.textContent = e.message || '通信エラーが発生しました';
       errEl.style.display = 'block';
@@ -1468,7 +1510,7 @@
           hideVideoLoading();
           if(pendingPlay){
             var p = pendingPlay; pendingPlay = null;
-            loadIntoPlayer(p.id);
+            loadIntoPlayer(p.id, p.startSeconds);
           }
         },
         onStateChange: function(e){
@@ -1519,6 +1561,7 @@
       }, 1000);
     } else if(state === 0){ // ended: close before the "up next" screen can be tapped
       stopEndGuardTimer();
+      clearPosition(currentVideoId); // 最後まで見た動画は「続きから」の対象から外す
       if(currentSource === 'gacha'){
         addExp(50);
         showIdleToast('🎲 学びボーナス +50 EXP');
@@ -1527,10 +1570,14 @@
     }
   }
 
-  function loadIntoPlayer(id){
-    if(!apiReady || !ytPlayer || !ytPlayer.loadVideoById){ pendingPlay = { id: id }; return; }
+  function loadIntoPlayer(id, startSeconds){
+    if(!apiReady || !ytPlayer || !ytPlayer.loadVideoById){ pendingPlay = { id: id, startSeconds: startSeconds }; return; }
     showVideoLoading();
-    ytPlayer.loadVideoById(id);
+    if(startSeconds){
+      ytPlayer.loadVideoById(id, startSeconds);
+    } else {
+      ytPlayer.loadVideoById(id);
+    }
     enforceEcoQuality();
   }
 
@@ -1561,10 +1608,12 @@
 
   var currentSource = 'search';
   var currentVideoTitle = '';
+  var currentVideoId = '';
 
   function playVideo(id, source, title){
     currentSource = source;
     currentVideoTitle = title || '再生中の音声';
+    currentVideoId = id;
     var countsToward = (source === 'search');
 
     if(countsToward){
@@ -1574,8 +1623,12 @@
       renderCounter();
     }
 
+    // 途中でやめた動画をもう一度選んだ場合は、続きから再生する
+    var savedPositions = loadPositions();
+    var resumeAt = savedPositions[id];
+
     document.getElementById('overlay').classList.add('open');
-    setTimeout(function(){ loadIntoPlayer(id); }, 50);
+    setTimeout(function(){ loadIntoPlayer(id, resumeAt); }, 50);
     markWatched(id);
 
     document.getElementById('radioTitle').textContent = currentVideoTitle;
@@ -1638,11 +1691,21 @@
   }
   function startRadioUpdateLoop(){
     if(radioUpdateInterval){ clearInterval(radioUpdateInterval); }
+    var tick = 0;
     radioUpdateInterval = setInterval(function(){
       if(!ytPlayer || !ytPlayer.getCurrentTime) return;
       var cur = ytPlayer.getCurrentTime();
       var dur = ytPlayer.getDuration();
       document.getElementById('radioTime').textContent = formatTime(cur) + ' / ' + formatTime(dur);
+      tick += 1;
+      if(tick % 5 === 0){
+        // 終盤(残り20秒未満)は見終わったとみなし、「続きから」の対象にしない
+        if(dur > 0 && (dur - cur) <= 20){
+          clearPosition(currentVideoId);
+        } else {
+          savePositionLocal(currentVideoId, cur);
+        }
+      }
     }, 1000);
   }
   function stopRadioUpdateLoop(){
@@ -1718,6 +1781,17 @@
   }
 
   document.getElementById('closeBtn').addEventListener('click', function(){
+    // 停止する前に現在の再生位置を保存しておく(次に選んだ時に続きから再生するため)
+    if(ytPlayer && ytPlayer.getCurrentTime && ytPlayer.getDuration){
+      var curPos = ytPlayer.getCurrentTime();
+      var totalDur = ytPlayer.getDuration();
+      if(totalDur > 0 && (totalDur - curPos) <= 20){
+        clearPosition(currentVideoId);
+      } else {
+        savePositionLocal(currentVideoId, curPos);
+      }
+      pushRemoteState();
+    }
     document.getElementById('overlay').classList.remove('open');
     markStopped();
     stopRadioUpdateLoop();
