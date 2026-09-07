@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho:wght@500;700&family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
 <title>Clean Tube</title>
 <style>
   :root{
@@ -42,7 +42,7 @@
       radial-gradient(ellipse at top, rgba(255,250,235,0.55), transparent 60%),
       linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
     color:var(--text);
-    font-family:'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-family:'Shippori Mincho', 'Zilla Slab', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
     -webkit-font-smoothing:antialiased;
     padding: max(12px, env(safe-area-inset-top)) 0 0;
     display:flex; flex-direction:column; min-height:100vh;
@@ -60,16 +60,11 @@
   }
   h1{
     position:relative; z-index:1;
-    font-family:'Shippori Mincho', serif;
-    font-size:16px;
-    font-weight:700;
-    letter-spacing:0.06em;
     margin:0 0 6px;
-    padding:14px 16px;
+    padding:13px 14px 13px 16px;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    color:#F3E6C8;
     background:
       var(--noise),
       repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px),
@@ -78,8 +73,31 @@
     background-size: 140px 140px, auto, auto;
     box-shadow: 0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 5px rgba(0,0,0,0.2);
   }
-  .gear{ background:none; border:none; color:#E8D9B5; font-size:18px; padding:4px; }
-  .counter{ position:relative; z-index:1; font-family:'DotGothic16', monospace; font-size:13px; color:var(--text-secondary); padding:8px 16px 2px; letter-spacing:0.02em; }
+  .brand{ display:flex; flex-direction:column; gap:2px; line-height:1; }
+  .brand-en{
+    font-family:'Zilla Slab', serif; font-weight:700; font-size:20px;
+    letter-spacing:0.01em; color:#F3E6C8;
+    text-shadow:0 1px 3px rgba(0,0,0,0.35);
+  }
+  .brand-ja{
+    font-family:'Shippori Mincho', serif; font-weight:500; font-size:10px;
+    letter-spacing:0.32em; color:rgba(255,214,150,0.62);
+  }
+  .gear{
+    background:rgba(0,0,0,0.18); border:1px solid rgba(255,255,255,0.14);
+    color:#E8D9B5; font-size:16px; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .gear:active{ background:rgba(0,0,0,0.32); }
+  .counter{
+    position:relative; z-index:1;
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'DotGothic16', monospace; font-size:12.5px; color:var(--text-secondary);
+    margin:8px 16px 12px; padding:6px 12px;
+    background:var(--surface-2); border:0.5px solid var(--border); border-radius:999px;
+    letter-spacing:0.02em;
+    box-shadow: inset 0 1px 2px rgba(58,42,26,0.06);
+  }
 
   .wisdom-box{
     position:relative; z-index:1;
@@ -176,21 +194,21 @@
   .exp-panel.hidden{ display:none; }
   .exp-panel{
     position:relative;
-    background: linear-gradient(135deg, #C96442 0%, #D97B4F 45%, #E0A672 100%);
+    background:
+      var(--noise),
+      radial-gradient(circle at 30% 18%, rgba(255,255,255,0.18), transparent 55%),
+      linear-gradient(135deg, var(--accent-2) 0%, var(--accent) 55%, var(--wood) 100%);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
     border-radius:24px;
     padding:34px 20px 28px;
     margin: 14px 0 20px;
     display:flex; flex-direction:column; align-items:center; gap:18px;
     box-shadow:
-      0 10px 28px rgba(201,100,66,0.28),
-      inset 0 1px 0 rgba(255,255,255,0.35),
-      inset 0 -18px 30px rgba(0,0,0,0.10);
+      0 10px 28px rgba(90,55,25,0.30),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -18px 30px rgba(0,0,0,0.14);
     overflow:hidden;
-  }
-  .exp-panel::before{
-    content:''; position:absolute; inset:0;
-    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 55%);
-    pointer-events:none;
   }
   .exp-ring-wrap{ position:relative; width:160px; height:160px; }
   .exp-ring{ width:100%; height:100%; transform:rotate(-90deg); }
@@ -395,11 +413,11 @@
     50%{ opacity:1; transform:scale(1.08); }
   }
   .radio-eyebrow{
-    font-family:'DotGothic16', monospace; font-size:10px; letter-spacing:0.32em;
+    font-family:'Zilla Slab', serif; font-weight:600; font-size:11px; letter-spacing:0.34em;
     color:rgba(255,205,130,0.75); margin-top:2px;
   }
   .radio-title{
-    font-family:'Shippori Mincho', serif; color:#F3E6C8; font-size:15px; text-align:center;
+    font-family:'Shippori Mincho', 'Zilla Slab', serif; color:#F3E6C8; font-size:15px; text-align:center;
     max-width:280px; line-height:1.6; margin-top:-6px;
     overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
   }
@@ -535,7 +553,7 @@
   }
   .gacha-choice-overlay.open .gacha-choice-panel{ transform:translateY(0); }
   .gacha-choice-head{ display:flex; flex-direction:column; align-items:center; gap:2px; margin-bottom:16px; }
-  .gacha-choice-eyebrow{ font-family:'DotGothic16', monospace; font-size:11px; letter-spacing:0.22em; color:var(--text-muted); }
+  .gacha-choice-eyebrow{ font-family:'Zilla Slab', serif; font-weight:600; font-size:12px; letter-spacing:0.24em; color:var(--text-muted); }
   .gacha-choice-title{ font-family:'Shippori Mincho', serif; font-size:17px; font-weight:700; color:var(--text); letter-spacing:0.03em; }
   .gacha-choice-cards{ display:flex; flex-direction:column; gap:12px; }
   .gacha-choice-card{
@@ -643,14 +661,20 @@
 
   @media (min-width: 640px){
     body{ max-width:min(94vw, 760px); margin:0 auto; border-left:0.5px solid var(--border); border-right:0.5px solid var(--border); }
-    .bottom-dock{ max-width:min(94vw, 760px); left:50%; right:auto; transform:translateX(-50%); }
+    .bottom-dock{ width:min(94vw, 760px); max-width:min(94vw, 760px); left:50%; right:auto; transform:translateX(-50%); }
     .bottom-dock.centered{ transform:translate(-50%, -50%); }
   }
 </style>
 </head>
 <body>
 
-  <h1>Clean Tube <button class="gear" id="settingsBtn" aria-label="設定">⚙</button></h1>
+  <h1>
+    <span class="brand">
+      <span class="brand-en">Clean Tube</span>
+      <span class="brand-ja">クリーンチューブ</span>
+    </span>
+    <button class="gear" id="settingsBtn" aria-label="設定">⚙</button>
+  </h1>
   <div class="counter" id="dailyCounter"></div>
   <div class="wisdom-box" id="wisdomBox">
     <div class="wisdom-label" id="wisdomLabel">今日の知恵</div>
@@ -1606,10 +1630,6 @@
     } else if(state === 0){ // ended: close before the "up next" screen can be tapped
       stopEndGuardTimer();
       clearPosition(currentVideoId); // 最後まで見た動画は「続きから」の対象から外す
-      if(currentSource === 'gacha'){
-        addExp(50);
-        showIdleToast('🎲 学びボーナス +50 EXP');
-      }
       document.getElementById('closeBtn').click();
     }
   }
@@ -1928,4 +1948,3 @@
 </script>
 </body>
 </html>
-
