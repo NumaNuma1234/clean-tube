@@ -127,7 +127,8 @@
     box-shadow: inset 0 1px 3px rgba(58,42,26,0.05);
   }
   .settings.open{ display:block; }
-  .label{ font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
+  .label{ font-size:12px; color:var(--text-secondary); margin:14px 0 6px; font-weight:600; }
+  .label:first-child{ margin-top:0; }
   .row{ display:flex; gap:8px; }
   input[type=text], input[type=password]{
     flex:1;
@@ -138,6 +139,7 @@
     padding:9px 12px;
     font-size:14px;
     min-width:0;
+    box-shadow: inset 0 1px 3px rgba(58,42,26,0.08);
   }
   input:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
   button{
@@ -149,9 +151,14 @@
     font-size:14px;
     font-weight:500;
     white-space:nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
   }
   button:active{ transform:scale(0.97); }
-  button.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.primary{
+    background: linear-gradient(160deg, var(--accent-2), var(--accent));
+    border-color:var(--accent); color:#fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 6px rgba(169,98,46,0.3);
+  }
   .err{ font-size:12px; color:var(--danger); margin:0 16px 8px; display:none; }
   .spinner{ font-size:12px; color:var(--text-muted); padding:4px 16px; display:none; }
 
@@ -360,21 +367,22 @@
     z-index:1001; pointer-events:none; padding:0 32px;
   }
   .video-loading.show{ display:flex; }
-  .video-loading .ring{
-    width:40px; height:40px; border-radius:50%;
-    border:3px solid rgba(255,255,255,0.25); border-top-color:#fff;
-    animation: spin 0.8s linear infinite;
-  }
+  .video-loading .loading-cup{ width:64px; height:64px; }
   .loading-quote{
-    font-family:'Shippori Mincho', serif; font-style:italic; font-size:13px; line-height:1.7;
-    color:rgba(255,255,255,0.82); text-align:center; max-width:280px;
+    font-family:'Shippori Mincho', serif; font-size:13px; line-height:1.8; letter-spacing:0.03em;
+    color:rgba(255,230,190,0.85); text-align:center; max-width:280px;
     opacity:0; transition:opacity 0.4s ease;
   }
+  .loading-quote::before{ content:'「'; color:rgba(255,205,130,0.5); }
+  .loading-quote::after{ content:'」'; color:rgba(255,205,130,0.5); }
   .loading-quote.show{ opacity:1; }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
   .screen-cover{
     position:absolute; inset:0;
-    background: radial-gradient(circle at 50% 38%, rgba(92,64,41,0.88), rgba(20,14,8,0.95));
+    background:
+      var(--noise),
+      radial-gradient(circle at 50% 38%, rgba(92,64,41,0.88), rgba(20,14,8,0.95));
+    background-blend-mode: soft-light, normal;
+    background-size: 140px 140px, auto;
     backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
     z-index:999;
     display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px;
@@ -402,6 +410,10 @@
   .radio-dial::after{
     content:''; position:absolute; inset:11px; border-radius:50%;
     border:1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 0 0 8px rgba(255,255,255,0.04),
+      0 0 0 9px rgba(0,0,0,0.15),
+      0 0 0 18px rgba(255,255,255,0.025);
   }
   .radio-dial-glow{
     width:56px; height:56px; border-radius:50%;
@@ -458,7 +470,10 @@
 
   .radio-speed-row{
     display:flex; gap:2px; padding:4px; margin-top:2px;
-    background:rgba(0,0,0,0.32); border:1px solid rgba(255,255,255,0.14);
+    background: var(--noise), rgba(0,0,0,0.32);
+    background-blend-mode: soft-light, normal;
+    background-size: 140px 140px, auto;
+    border:1px solid rgba(255,255,255,0.14);
     border-radius:18px;
   }
   .radio-speed-btn{
@@ -649,12 +664,16 @@
     flex:1; padding:12px; border-radius:14px; font-size:13px; font-weight:600;
     background:var(--surface-2); border:0.5px solid var(--border); color:var(--text-secondary);
   }
-  .gacha-choice-reroll{ color:var(--matcha); }
+  .gacha-choice-reroll{ color:var(--matcha); border-color:rgba(125,143,71,0.35); }
 
   .chan-row{
     display:flex; align-items:center; justify-content:space-between;
-    border:0.5px solid var(--border); border-radius:10px; background:var(--surface-2);
+    border:0.5px solid var(--border); border-radius:10px;
+    background: var(--noise), var(--surface-2);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
     padding:9px 10px; margin-bottom:6px;
+    box-shadow: inset 0 1px 2px rgba(58,42,26,0.05);
   }
   .chan-row a{ color:var(--accent); text-decoration:none; font-size:13px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .chan-row button{ padding:4px 10px; margin-left:8px; font-size:12px; }
@@ -766,7 +785,31 @@
     </div>
     <div class="end-guard" id="endGuard"></div>
     <div class="video-loading" id="videoLoading">
-      <div class="ring"></div>
+      <svg class="loading-cup" viewBox="0 0 80 80" aria-hidden="true">
+        <defs>
+          <clipPath id="cupClip">
+            <path d="M20 30 L24 58 Q40 64 56 58 L60 30 Z"/>
+          </clipPath>
+        </defs>
+        <g stroke="rgba(255,214,150,0.55)" stroke-width="2.2" fill="none" stroke-linecap="round">
+          <path d="M32 24 Q28 18 32 13 Q36 8 32 3">
+            <animate attributeName="opacity" values="0;0.85;0" dur="2.4s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0 6;0 -4;0 6" dur="2.4s" repeatCount="indefinite"/>
+          </path>
+          <path d="M48 24 Q44 18 48 13 Q52 8 48 3">
+            <animate attributeName="opacity" values="0;0.85;0" dur="2.4s" begin="0.8s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0 6;0 -4;0 6" dur="2.4s" begin="0.8s" repeatCount="indefinite"/>
+          </path>
+        </g>
+        <rect x="18" y="60" width="44" height="0" fill="#D98A3D" clip-path="url(#cupClip)">
+          <animate attributeName="y" values="60;28;28;60" keyTimes="0;0.5;0.85;1" dur="2.6s" repeatCount="indefinite"/>
+          <animate attributeName="height" values="0;32;32;0" keyTimes="0;0.5;0.85;1" dur="2.6s" repeatCount="indefinite"/>
+        </rect>
+        <path d="M20 30 L24 58 Q40 64 56 58 L60 30 Z" fill="none" stroke="#F3E6C8" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M60 32 Q70 32 70 40 Q70 48 60 47" fill="none" stroke="#F3E6C8" stroke-width="2.5"/>
+        <ellipse cx="40" cy="30" rx="20" ry="4" fill="none" stroke="#F3E6C8" stroke-width="2.5"/>
+        <ellipse cx="40" cy="66" rx="26" ry="4" fill="none" stroke="rgba(243,230,200,0.5)" stroke-width="2"/>
+      </svg>
       <div class="loading-quote" id="loadingQuote"></div>
     </div>
     <div class="screen-cover" id="screenCover">
@@ -902,8 +945,23 @@
   }
   function applySyncState(obj){
     if(!obj) return;
+    // 一覧系(視聴済み/非表示リスト)は「上書き」ではなく合体させる。
+    // そうしないと、他端末の少し古いデータで同期した瞬間に、直前にこの端末で
+    // 「今後表示しない」にしたばかりの動画が復活してしまうことがあるため。
+    var LIST_KEYS = ['clean-tube-watched-ids', 'clean-tube-hidden-ids'];
     Object.keys(obj).forEach(function(k){
-      if(SYNC_KEYS.indexOf(k) !== -1){ localStorage.setItem(k, obj[k]); }
+      if(SYNC_KEYS.indexOf(k) === -1) return;
+      if(LIST_KEYS.indexOf(k) !== -1){
+        var localList = [];
+        try{ localList = JSON.parse(localStorage.getItem(k) || '[]'); }catch(e){}
+        var remoteList = [];
+        try{ remoteList = JSON.parse(obj[k] || '[]'); }catch(e){}
+        var merged = localList.slice();
+        remoteList.forEach(function(id){ if(merged.indexOf(id) === -1){ merged.push(id); } });
+        localStorage.setItem(k, JSON.stringify(merged));
+      } else {
+        localStorage.setItem(k, obj[k]);
+      }
     });
   }
   async function pullRemoteState(){
@@ -966,10 +1024,9 @@
     var h = loadHidden();
     return items.filter(function(item){ return h.indexOf(item.id) === -1; });
   }
-  // 検索用: 全部除外済みで0件になる場合だけ、手詰まり防止のため元のリストを返す
+  // 「今後表示しない」指定の動画は検索でも復活させない(フォールバックなし)
   function filterUnwatched(items){
-    var filtered = filterExcluded(items);
-    return filtered.length > 0 ? filtered : items;
+    return filterExcluded(items);
   }
 
   // ---- 再生位置の記憶(途中でやめた動画を、次に選んだ時に続きから再生する) ----
@@ -1679,6 +1736,64 @@
   var currentVideoTitle = '';
   var currentVideoId = '';
 
+  // ---- 画面スリープ防止(ラジオ/モザイク画面表示中は端末が自動で画面ロックされないようにする) ----
+  // ※これはあくまで「画面を点けたまま」再生を続けるための対策で、
+  //   他のアプリに完全に切り替えた場合の再生継続を保証するものではありません
+  //  (これはブラウザ・OS側の制約で、埋め込みYouTube動画では回避できません)。
+  var wakeLock = null;
+  async function requestWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch(e){ wakeLock = null; }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){
+      try{ wakeLock.release(); } catch(e){}
+      wakeLock = null;
+    }
+  }
+  document.addEventListener('visibilitychange', function(){
+    // タブが再びアクティブになった時、再生中であればスリープ防止を掛け直す
+    // (Wake Lockはタブが非表示になると自動的に解除される仕様のため)
+    if(document.visibilityState === 'visible' && document.getElementById('overlay').classList.contains('open')){
+      requestWakeLock();
+    }
+  });
+
+  // ---- メディアセッション(ロック画面・通知欄からの再生/一時停止操作に対応させる) ----
+  function setupMediaSession(){
+    if(!('mediaSession' in navigator)) return;
+    try{
+      navigator.mediaSession.setActionHandler('play', function(){
+        if(ytPlayer && ytPlayer.playVideo){ ytPlayer.playVideo(); }
+        syncPlayPauseUI(true);
+      });
+      navigator.mediaSession.setActionHandler('pause', function(){
+        if(ytPlayer && ytPlayer.pauseVideo){ ytPlayer.pauseVideo(); }
+        syncPlayPauseUI(false);
+      });
+      navigator.mediaSession.setActionHandler('stop', function(){
+        document.getElementById('closeBtn').click();
+      });
+    } catch(e){ /* 未対応ブラウザは無視 */ }
+  }
+  function syncPlayPauseUI(playing){
+    var btn = document.getElementById('radioPlayPauseBtn');
+    var iconPause = btn.querySelector('.icon-pause');
+    var iconPlay = btn.querySelector('.icon-play');
+    var dialWrap = document.getElementById('radioDialWrap');
+    var ctrlWrap = document.getElementById('radioCtrlWrap');
+    iconPause.style.display = playing ? '' : 'none';
+    iconPlay.style.display = playing ? 'none' : '';
+    dialWrap.classList.toggle('paused', !playing);
+    ctrlWrap.classList.toggle('paused', !playing);
+    if('mediaSession' in navigator){
+      try{ navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch(e){}
+    }
+  }
+  setupMediaSession();
+
   function playVideo(id, source, title){
     currentSource = source;
     currentVideoTitle = title || '再生中の音声';
@@ -1708,6 +1823,18 @@
     startRadioUpdateLoop();
     currentPlaybackRate = 1;
     setRadioSpeedButtons(1);
+
+    if('mediaSession' in navigator){
+      try{
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentVideoTitle,
+          artist: 'Clean Tube',
+          album: source === 'gacha' ? 'おまかせ' : '検索'
+        });
+        navigator.mediaSession.playbackState = 'playing';
+      } catch(e){}
+    }
+    requestWakeLock();
 
     // 動画再生開始時は常にモザイク(見えにくく)モードから始める。ボタン/タップでいつでも解除できる。
     var cover = document.getElementById('screenCover');
@@ -1785,23 +1912,13 @@
   document.getElementById('radioPlayPauseBtn').addEventListener('click', function(e){
     e.stopPropagation();
     if(!ytPlayer || !ytPlayer.getPlayerState) return;
-    var iconPause = this.querySelector('.icon-pause');
-    var iconPlay = this.querySelector('.icon-play');
-    var dialWrap = document.getElementById('radioDialWrap');
-    var ctrlWrap = document.getElementById('radioCtrlWrap');
     var state = ytPlayer.getPlayerState();
     if(state === 1){
       ytPlayer.pauseVideo();
-      iconPause.style.display = 'none';
-      iconPlay.style.display = '';
-      dialWrap.classList.add('paused');
-      ctrlWrap.classList.add('paused');
+      syncPlayPauseUI(false);
     } else {
       ytPlayer.playVideo();
-      iconPause.style.display = '';
-      iconPlay.style.display = 'none';
-      dialWrap.classList.remove('paused');
-      ctrlWrap.classList.remove('paused');
+      syncPlayPauseUI(true);
     }
   });
 
@@ -1860,6 +1977,10 @@
         savePositionLocal(currentVideoId, curPos);
       }
       pushRemoteState();
+    }
+    releaseWakeLock();
+    if('mediaSession' in navigator){
+      try{ navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; } catch(e){}
     }
     document.getElementById('overlay').classList.remove('open');
     markStopped();
@@ -1948,4 +2069,3 @@
 </script>
 </body>
 </html>
-
