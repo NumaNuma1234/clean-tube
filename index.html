@@ -360,8 +360,6 @@
   .player-frame{ position:relative; width:100%; aspect-ratio:16/9; max-height:100vh; overflow:hidden; background:#000; }
   .player-frame.eco-shrink #player{ width:160px; height:103px; }
   #player{ position:absolute; top:0; left:0; width:100%; height:114%; }
-  .end-guard{ position:absolute; left:0; right:0; bottom:0; height:16%; z-index:998; background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.94) 50%); display:none; }
-  .end-guard.show{ display:block; }
   .video-loading{
     position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px;
     z-index:1001; pointer-events:none; padding:0 32px;
@@ -784,7 +782,6 @@
     <div class="player-frame" id="playerFrame">
       <div id="player"></div>
     </div>
-    <div class="end-guard" id="endGuard"></div>
     <div class="video-loading" id="videoLoading">
       <svg class="loading-cup" viewBox="0 0 80 80" aria-hidden="true">
         <defs>
@@ -1664,29 +1661,9 @@
     enforceEcoQuality();
   }
 
-  var endGuardInterval = null;
-
-  function stopEndGuardTimer(){
-    if(endGuardInterval){ clearInterval(endGuardInterval); endGuardInterval = null; }
-    document.getElementById('endGuard').classList.remove('show');
-  }
-
   function handlePlayerStateChange(state){
     // state: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
-    if(state === 1){ // playing
-      stopEndGuardTimer();
-      endGuardInterval = setInterval(function(){
-        if(!ytPlayer || !ytPlayer.getDuration) return;
-        var duration = ytPlayer.getDuration();
-        var current = ytPlayer.getCurrentTime();
-        if(duration > 0 && (duration - current) <= 20){
-          document.getElementById('endGuard').classList.add('show');
-        } else {
-          document.getElementById('endGuard').classList.remove('show');
-        }
-      }, 1000);
-    } else if(state === 0){ // ended: close before the "up next" screen can be tapped
-      stopEndGuardTimer();
+    if(state === 0){ // ended: close before the "up next" screen can be tapped
       clearPosition(currentVideoId); // 最後まで見た動画は「続きから」の対象から外す
       document.getElementById('closeBtn').click();
     }
@@ -1719,7 +1696,7 @@
   }
   var videoLoadingSafetyTimer = null;
   var videoLoadingShownAt = 0;
-  var VIDEO_LOADING_MIN_MS = 1600; // 読み込みが一瞬で終わっても、注ぐ演出が一瞬で消えないように最低表示時間を設ける
+  var VIDEO_LOADING_MIN_MS = 2800; // 読み込みが一瞬で終わっても、注ぐ演出が一瞬で消えないように最低表示時間を設ける
   function showVideoLoading(){
     document.getElementById('videoLoading').classList.add('show');
     document.getElementById('screenCover').classList.add('player-loading');
