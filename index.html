@@ -1695,15 +1695,10 @@
   function loadIntoPlayer(id, startSeconds){
     if(!apiReady || !ytPlayer || !ytPlayer.loadVideoById){ pendingPlay = { id: id, startSeconds: startSeconds }; return; }
     showVideoLoading();
-    try{
-      if(startSeconds){
-        ytPlayer.loadVideoById({ videoId: id, startSeconds: startSeconds });
-      } else {
-        ytPlayer.loadVideoById(id);
-      }
-    } catch(e){
-      // 万一失敗したら、開始位置指定なしでもう一度だけ試す
-      try{ ytPlayer.loadVideoById(id); } catch(e2){}
+    if(startSeconds){
+      ytPlayer.loadVideoById(id, startSeconds);
+    } else {
+      ytPlayer.loadVideoById(id);
     }
     enforceEcoQuality();
   }
@@ -1723,17 +1718,29 @@
     }, 200);
   }
   var videoLoadingSafetyTimer = null;
+  var videoLoadingShownAt = 0;
+  var VIDEO_LOADING_MIN_MS = 1600; // 読み込みが一瞬で終わっても、注ぐ演出が一瞬で消えないように最低表示時間を設ける
   function showVideoLoading(){
     document.getElementById('videoLoading').classList.add('show');
     document.getElementById('screenCover').classList.add('player-loading');
+    videoLoadingShownAt = Date.now();
     showRandomLoadingQuote();
     if(loadingQuoteInterval){ clearInterval(loadingQuoteInterval); }
     loadingQuoteInterval = setInterval(showRandomLoadingQuote, 4000);
     // 万一状態変化イベントを取りこぼしても、ここで必ず消えるようにしておく保険
     if(videoLoadingSafetyTimer){ clearTimeout(videoLoadingSafetyTimer); }
-    videoLoadingSafetyTimer = setTimeout(hideVideoLoading, 8000);
+    videoLoadingSafetyTimer = setTimeout(reallyHideVideoLoading, 8000);
   }
   function hideVideoLoading(){
+    var elapsed = Date.now() - videoLoadingShownAt;
+    var remain = VIDEO_LOADING_MIN_MS - elapsed;
+    if(remain > 0){
+      setTimeout(reallyHideVideoLoading, remain);
+    } else {
+      reallyHideVideoLoading();
+    }
+  }
+  function reallyHideVideoLoading(){
     document.getElementById('videoLoading').classList.remove('show');
     document.getElementById('screenCover').classList.remove('player-loading');
     if(loadingQuoteInterval){ clearInterval(loadingQuoteInterval); loadingQuoteInterval = null; }
