@@ -227,7 +227,7 @@
     fill:none; stroke:#FFFFFF; stroke-width:9; stroke-linecap:round;
     stroke-dasharray:326.7; stroke-dashoffset:326.7;
     transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.4,0.64,1);
-    filter: drop-shadow(0 0 6px rgba(255,255,255,0.7));
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
   }
   .exp-center{
     position:absolute; inset:0; display:flex; flex-direction:column;
@@ -615,6 +615,21 @@
     100%{ opacity:0; background-position:-50% 0; }
   }
   .gacha-choice-card:active{ transform:scale(0.97); }
+  .gacha-choice-card.rare{
+    border-color:#FFD36E;
+    animation: rareGlow 1.8s ease-in-out infinite;
+  }
+  @keyframes rareGlow{
+    0%,100%{ box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(58,42,26,0.05), 0 0 0 1px rgba(255,211,110,0.4), 0 6px 20px rgba(255,180,60,0.28); }
+    50%{ box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(58,42,26,0.05), 0 0 0 1px rgba(255,225,150,0.75), 0 8px 26px rgba(255,180,60,0.55); }
+  }
+  .gacha-rare-badge{
+    position:absolute; top:-9px; left:50%; transform:translateX(-50%); z-index:2;
+    background: linear-gradient(135deg, #FFE29A, #FFB347);
+    color:#5C3A0A; font-size:10px; font-weight:800; letter-spacing:0.04em;
+    padding:3px 9px; border-radius:999px; white-space:nowrap;
+    box-shadow:0 2px 6px rgba(255,150,40,0.5);
+  }
   .gacha-choice-num{
     flex:0 0 auto; width:22px; height:22px; border-radius:50%;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
@@ -728,7 +743,7 @@
       <input type="text" id="quickTagsInput" placeholder="例: 癒し,AI,投資">
       <button id="saveTagsBtn">保存</button>
     </div>
-    <div class="label">よく見るチャンネル</div>
+    <div class="label">お気に入りチャンネル(おまかせの精度アップに使われます)</div>
     <div id="channelList"></div>
     <div class="row" style="margin-top:8px;">
       <input type="text" id="channelNameInput" placeholder="チャンネル名">
@@ -1164,7 +1179,19 @@
     { text:'紙を一枚、何回折っても物理的には10回前後が限界とされている(紙の大きさによって多少前後する)。', tag:'雑学' },
     { text:'ワインやチーズと同じく、味噌や醤油も微生物による発酵でうま味が作られている。', tag:'食べ物' },
     { text:'ピアノの鍵盤は88鍵あり、これは一般的なピアノでほぼ統一された数として知られている。', tag:'音楽' },
-    { text:'南極は「砂漠」に分類されることがある。降水量(降雪量)が非常に少ないため。', tag:'地理' }
+    { text:'南極は「砂漠」に分類されることがある。降水量(降雪量)が非常に少ないため。', tag:'地理' },
+    { text:'光は1秒間で地球を約7周半できるほどの速さで進む。', tag:'宇宙' },
+    { text:'人間の骨は生まれたときは約300個あるが、成長の過程でくっつき合い、大人になる頃には206個になる。', tag:'人体' },
+    { text:'エベレストの標高は、プレートの移動によって今も少しずつ(年間数mmほど)高くなり続けている。', tag:'地理' },
+    { text:'チーターは時速100kmを超える速さを出せるが、そのスピードを維持できるのはわずか数十秒ほど。', tag:'生き物' },
+    { text:'「サンドイッチ」という料理名は、考案者とされるイギリスの貴族「サンドイッチ伯爵」の名前に由来する。', tag:'食べ物' },
+    { text:'オーロラは、太陽から飛んできた粒子が地球の大気とぶつかることで光る現象である。', tag:'自然科学' },
+    { text:'あくびは人間だけでなく、犬や鳥、魚など多くの動物にも見られる行動である。', tag:'生き物' },
+    { text:'虹は、太陽を背にして立ったときにしか見ることができない。', tag:'自然科学' },
+    { text:'世界で一番小さい国はバチカン市国で、その面積は東京ディズニーランドよりも小さい。', tag:'地理' },
+    { text:'「ありがとう」という言葉は、「有り難し(めったにない、貴重だ)」という古い表現に由来する。', tag:'言葉' },
+    { text:'オリンピックの五輪マークの5色と白い背景は、当時参加していたほぼすべての国の国旗の色を網羅できるよう考えられたとされる。', tag:'歴史' },
+    { text:'1円硬貨を1枚作るのにかかる金属や製造コストは、額面の1円を上回ると言われている。', tag:'雑学' }
   ];
   var lastWisdomIdx = -1;
   function renderWisdom(idx){
@@ -1286,6 +1313,7 @@
   });
 
   var gachaCurrentQuery = '';
+  var gachaCurrentChannelId = ''; // 登録チャンネルを使った回のみセットされる
   var gachaReservePool = [];   // 3択に出さなかった予備の候補(非表示にした時の差し替え用)
   var currentGachaPicks = [];  // 現在3択画面に表示している動画
 
@@ -1301,11 +1329,22 @@
     }
     if(gachaQueries.length === 0){ return; }
 
-    var pickedQuery = gachaQueries[Math.floor(Math.random() * gachaQueries.length)];
+    // お気に入りチャンネル(IDが特定できているもの)が登録されていれば、
+    // 一定確率でそのチャンネルの中から新着を引く(タグ検索より確実に「好み」に近いため)
+    var favChannels = channels.filter(function(c){ return c.channelId; });
+    var useChannel = favChannels.length > 0 && Math.random() < 0.4;
+    var pickedQuery, pickedChannelId = '';
+    if(useChannel){
+      var chan = favChannels[Math.floor(Math.random() * favChannels.length)];
+      pickedQuery = chan.name;
+      pickedChannelId = chan.channelId;
+    } else {
+      pickedQuery = gachaQueries[Math.floor(Math.random() * gachaQueries.length)];
+    }
     var spinner = document.getElementById('spinner');
     spinner.style.display = 'block';
     try{
-      var items = await fetchVideos(pickedQuery, 25);
+      var items = await fetchVideos(useChannel ? '' : pickedQuery, 25, pickedChannelId);
       items = items.filter(function(item){
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
@@ -1316,9 +1355,8 @@
         errEl.style.display = 'block';
         return;
       }
-      items.sort(function(a, b){
-        return (parseInt(b.statistics.viewCount || 0, 10)) - (parseInt(a.statistics.viewCount || 0, 10));
-      });
+      // fetchVideosの時点で既に関連度順(YouTubeの検索アルゴリズム順)になっているので、
+      // 再生回数で並べ替えて精度を落とさないよう、その順番をそのまま使う
       var topN = items.slice(0, Math.min(15, items.length));
       // シャッフルして重複なしで抽出
       var shuffled = topN.slice();
@@ -1327,7 +1365,13 @@
         var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
       }
       var picks = shuffled.slice(0, Math.min(3, shuffled.length));
+      // たまに(だいたい7回に1回くらい)3択の中に「レア」が混ざる、というちょっとした当たり演出
+      if(Math.random() < 0.15){
+        var rareIdx = Math.floor(Math.random() * picks.length);
+        picks[rareIdx].__rare = true;
+      }
       gachaCurrentQuery = pickedQuery;
+      gachaCurrentChannelId = pickedChannelId;
       gachaReservePool = shuffled.slice(picks.length); // 残りは「今後表示しない」で消した時の差し替え候補として温存
       showGachaChoices(picks);
     } catch(e){
@@ -1341,7 +1385,9 @@
   function gachaCardHtml(item, idx){
     var snippet = item.snippet;
     var thumb = (snippet.thumbnails.medium || snippet.thumbnails.default).url;
+    var rareBadge = item.__rare ? '<span class="gacha-rare-badge">★ レア</span>' : '';
     return (
+      rareBadge +
       '<span class="gacha-choice-num">' + (idx + 1) + '</span>' +
       '<button class="gacha-choice-hide-btn" data-idx="' + idx + '" aria-label="今後表示しない" title="今後表示しない">🚫</button>' +
       '<img src="' + thumb + '" alt="">' +
@@ -1355,9 +1401,14 @@
     el.addEventListener('click', function(){
       var item = currentGachaPicks[idx];
       if(!item) return;
+      var isRare = !!item.__rare;
       el.classList.add('reveal-shine');
       setTimeout(function(){
         hideGachaChoices();
+        if(isRare){
+          addExp(30);
+          showIdleToast('★ レア当たり! +30 EXP');
+        }
         playVideo(item.id, 'gacha', item.snippet.title);
       }, 180);
     });
@@ -1373,7 +1424,7 @@
     container.innerHTML = '';
     items.forEach(function(item, idx){
       var el = document.createElement('div');
-      el.className = 'gacha-choice-card';
+      el.className = 'gacha-choice-card' + (item.__rare ? ' rare' : '');
       el.setAttribute('data-idx', idx);
       el.innerHTML = gachaCardHtml(item, idx);
       bindGachaCard(el, idx);
@@ -1394,10 +1445,10 @@
         return cand;
       }
     }
-    // 予備プールが尽きたら、同じクエリで新たに取得しに行く
-    if(!gachaCurrentQuery) return null;
+    // 予備プールが尽きたら、同じクエリ(またはチャンネル)で新たに取得しに行く
+    if(!gachaCurrentQuery && !gachaCurrentChannelId) return null;
     try{
-      var items = await fetchVideos(gachaCurrentQuery, 25);
+      var items = await fetchVideos(gachaCurrentChannelId ? '' : gachaCurrentQuery, 25, gachaCurrentChannelId);
       items = items.filter(function(item){
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
@@ -1405,9 +1456,7 @@
         return !currentGachaPicks.some(function(p){ return p && p.id === item.id; });
       });
       if(items.length === 0) return null;
-      items.sort(function(a, b){
-        return (parseInt(b.statistics.viewCount || 0, 10)) - (parseInt(a.statistics.viewCount || 0, 10));
-      });
+      // 関連度順(fetchVideosの並び)をそのまま使う
       var topN = items.slice(0, Math.min(15, items.length));
       // 取得分の残りは次回の差し替え用の予備プールに足しておく
       gachaReservePool = gachaReservePool.concat(topN.slice(1));
@@ -1554,9 +1603,16 @@
     });
   }
 
-  async function fetchVideos(q, maxResults){
+  async function fetchVideos(q, maxResults, channelId){
     var searchUrl = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults='
-      + maxResults + '&q=' + encodeURIComponent(q) + '&regionCode=JP&relevanceLanguage=ja&key=' + encodeURIComponent(apiKey);
+      + maxResults + '&regionCode=JP&relevanceLanguage=ja&key=' + encodeURIComponent(apiKey);
+    if(channelId){
+      // 登録チャンネルからのおまかせ: そのチャンネル内に絞って新着順で取得する
+      searchUrl += '&channelId=' + encodeURIComponent(channelId) + '&order=date';
+      if(q){ searchUrl += '&q=' + encodeURIComponent(q); }
+    } else {
+      searchUrl += '&q=' + encodeURIComponent(q);
+    }
     var searchRes = await fetch(searchUrl);
     var searchData = await searchRes.json();
     if(searchData.error) throw new Error(searchData.error.message || 'APIエラー');
@@ -1564,12 +1620,19 @@
     var ids = (searchData.items || []).map(function(i){ return i.id.videoId; }).filter(Boolean);
     if(ids.length === 0) return [];
 
+    // YouTubeの検索結果(searchData.items)は「関連度順」に並んでいるが、
+    // videos.list APIはid指定の順番を保証してくれないため、後で関連度順に並べ直す
+    var relevanceOrder = {};
+    ids.forEach(function(id, i){ relevanceOrder[id] = i; });
+
     var detailsUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id='
       + ids.join(',') + '&key=' + encodeURIComponent(apiKey);
     var detailsRes = await fetch(detailsUrl);
     var detailsData = await detailsRes.json();
     if(detailsData.error) throw new Error(detailsData.error.message || 'APIエラー');
-    return detailsData.items || [];
+    var items = detailsData.items || [];
+    items.sort(function(a, b){ return relevanceOrder[a.id] - relevanceOrder[b.id]; });
+    return items;
   }
 
   // ---- normal search ----
@@ -2023,7 +2086,7 @@
       row.className = 'chan-row';
       var a = document.createElement('a');
       a.href = c.url; a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = c.name;
+      a.textContent = (c.channelId ? '🎲 ' : '') + c.name;
       var del = document.createElement('button');
       del.textContent = '削除';
       del.addEventListener('click', function(){
@@ -2037,7 +2100,33 @@
     });
   }
 
-  document.getElementById('addChannelBtn').addEventListener('click', function(){
+  // URLからチャンネルIDを特定する(おまかせで channelId 指定検索に使うため)
+  async function resolveChannelId(url){
+    var m = url.match(/\/channel\/(UC[a-zA-Z0-9_-]{10,})/);
+    if(m) return m[1]; // /channel/UCxxxx形式はそのままID
+    if(!apiKey) return null;
+    try{
+      var handleMatch = url.match(/\/@([a-zA-Z0-9_.-]+)/);
+      if(handleMatch){
+        var res1 = await fetch('https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=' + encodeURIComponent('@' + handleMatch[1]) + '&key=' + encodeURIComponent(apiKey));
+        var data1 = await res1.json();
+        if(data1.items && data1.items[0]){ return data1.items[0].id; }
+      }
+      var userMatch = url.match(/\/(?:c|user)\/([a-zA-Z0-9_.-]+)/);
+      if(userMatch){
+        var res2 = await fetch('https://www.googleapis.com/youtube/v3/channels?part=id&forUsername=' + encodeURIComponent(userMatch[1]) + '&key=' + encodeURIComponent(apiKey));
+        var data2 = await res2.json();
+        if(data2.items && data2.items[0]){ return data2.items[0].id; }
+        // レガシーusernameで見つからない場合、チャンネル名としてsearchで探す
+        var res3 = await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=1&q=' + encodeURIComponent(userMatch[1]) + '&key=' + encodeURIComponent(apiKey));
+        var data3 = await res3.json();
+        if(data3.items && data3.items[0]){ return data3.items[0].id.channelId; }
+      }
+    } catch(e){ /* 解決できなくても、ブックマークとしては登録できるようにする */ }
+    return null;
+  }
+
+  document.getElementById('addChannelBtn').addEventListener('click', async function(){
     var errEl = document.getElementById('channelErr');
     var name = document.getElementById('channelNameInput').value.trim();
     var url = document.getElementById('channelUrlInput').value.trim();
@@ -2052,10 +2141,21 @@
       return;
     }
     errEl.style.display = 'none';
-    channels.push({ name: name, url: url });
+    var addBtn = this;
+    addBtn.disabled = true;
+    var originalLabel = addBtn.textContent;
+    addBtn.textContent = '登録中…';
+    var channelId = await resolveChannelId(url);
+    channels.push({ name: name, url: url, channelId: channelId || null });
     saveChannels(channels);
     document.getElementById('channelNameInput').value = '';
     document.getElementById('channelUrlInput').value = '';
+    if(!channelId){
+      errEl.textContent = 'チャンネルIDを特定できなかったため、ブックマークとしてのみ登録しました(おまかせの精度アップには使われません)';
+      errEl.style.display = 'block';
+    }
+    addBtn.disabled = false;
+    addBtn.textContent = originalLabel;
     renderChannels();
   });
 
