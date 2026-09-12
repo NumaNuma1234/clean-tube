@@ -436,7 +436,8 @@
   }
   .radio-time{ font-family:'DotGothic16', monospace; color:rgba(243,230,200,0.75); font-size:13px; letter-spacing:0.08em; }
 
-  .radio-ctrl-wrap{ position:relative; width:132px; height:132px; display:flex; align-items:center; justify-content:center; margin:4px 0 2px; }
+  .radio-ctrl-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin:4px 0 2px; }
+  .radio-ctrl-wrap{ position:relative; width:132px; height:132px; display:flex; align-items:center; justify-content:center; }
   .radio-ctrl-wrap::before{
     content:''; position:absolute; inset:-3px; border-radius:50%;
     background: conic-gradient(from 90deg, rgba(255,205,130,0.9), rgba(255,205,130,0.05) 30%, rgba(255,205,130,0.05) 70%, rgba(255,205,130,0.9));
@@ -468,6 +469,24 @@
   .radio-ctrl-btn:active{ transform:scale(0.92); }
   .radio-ctrl-btn .ctrl-icon{ filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
   .radio-ctrl-btn .icon-play{ margin-left:5px; }
+
+  .radio-chapter-btn{
+    position:relative; width:56px; height:56px; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255,255,255,0.12), rgba(255,255,255,0) 42%),
+      linear-gradient(165deg, rgba(70,50,32,0.82) 0%, rgba(24,17,10,0.88) 100%);
+    border:1px solid rgba(255,214,150,0.32);
+    color:rgba(243,230,200,0.85);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    box-shadow:
+      0 8px 18px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      inset 0 -8px 12px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease;
+  }
+  .radio-chapter-btn:active{ transform:scale(0.9); }
+  .radio-chapter-btn .ctrl-icon{ filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  .radio-chapter-btn .chapter-btn-label{ font-family:'DotGothic16', monospace; font-size:7.5px; letter-spacing:0.03em; color:rgba(243,230,200,0.7); }
 
   .radio-speed-row{
     display:flex; gap:2px; padding:4px; margin-top:2px;
@@ -831,15 +850,24 @@
       <div class="radio-eyebrow">NOW PLAYING</div>
       <div class="radio-title" id="radioTitle">再生中の音声</div>
       <div class="radio-time" id="radioTime">00:00 / 00:00</div>
-      <div class="radio-ctrl-wrap" id="radioCtrlWrap">
-        <button class="radio-ctrl-btn" id="radioPlayPauseBtn" aria-label="再生/一時停止">
-          <svg class="ctrl-icon icon-pause" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true">
-            <rect x="6" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
-            <rect x="13.5" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+      <div class="radio-ctrl-row">
+        <div class="radio-ctrl-wrap" id="radioCtrlWrap">
+          <button class="radio-ctrl-btn" id="radioPlayPauseBtn" aria-label="再生/一時停止">
+            <svg class="ctrl-icon icon-pause" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true">
+              <rect x="6" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+              <rect x="13.5" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+            </svg>
+            <svg class="ctrl-icon icon-play" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true" style="display:none;">
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.5-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14z" fill="currentColor"></path>
+            </svg>
+          </button>
+        </div>
+        <button class="radio-chapter-btn" id="radioNextChapterBtn" aria-label="次のチャプターへ" style="display:none;">
+          <svg class="ctrl-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M5 5.5v13a1 1 0 0 0 1.5.87l9.5-6.5a1 1 0 0 0 0-1.74l-9.5-6.5A1 1 0 0 0 5 5.5z" fill="currentColor"></path>
+            <rect x="17" y="5" width="2.4" height="14" rx="1" fill="currentColor"></rect>
           </svg>
-          <svg class="ctrl-icon icon-play" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true" style="display:none;">
-            <path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.5-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14z" fill="currentColor"></path>
-          </svg>
+          <span class="chapter-btn-label">次の章</span>
         </button>
       </div>
       <div class="radio-speed-row">
@@ -1307,7 +1335,6 @@
   });
 
   var gachaCurrentQuery = '';
-  var gachaCurrentChannelId = ''; // 登録チャンネルを使った回のみセットされる
   var gachaReservePool = [];   // 3択に出さなかった予備の候補(非表示にした時の差し替え用)
   var currentGachaPicks = [];  // 現在3択画面に表示している動画
 
@@ -1323,22 +1350,14 @@
     }
     if(gachaQueries.length === 0){ return; }
 
-    // お気に入りチャンネル(IDが特定できているもの)が登録されていれば、
-    // 一定確率でそのチャンネルの中から新着を引く(タグ検索より確実に「好み」に近いため)
-    var favChannels = channels.filter(function(c){ return c.channelId; });
-    var useChannel = favChannels.length > 0 && Math.random() < 0.4;
-    var pickedQuery, pickedChannelId = '';
-    if(useChannel){
-      var chan = favChannels[Math.floor(Math.random() * favChannels.length)];
-      pickedQuery = chan.name;
-      pickedChannelId = chan.channelId;
-    } else {
-      pickedQuery = gachaQueries[Math.floor(Math.random() * gachaQueries.length)];
-    }
+    // タグワードでの検索が大前提。その検索結果の中に登録チャンネルの動画があれば、
+    // 3択の選択肢として優先的に採用する(登録チャンネルがヒットしなければ普通に選ぶ)。
+    var pickedQuery = gachaQueries[Math.floor(Math.random() * gachaQueries.length)];
+    var favIds = channels.filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
     var spinner = document.getElementById('spinner');
     spinner.style.display = 'block';
     try{
-      var items = await fetchVideos(useChannel ? '' : pickedQuery, 25, pickedChannelId);
+      var items = await fetchVideos(pickedQuery, 25);
       items = items.filter(function(item){
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
@@ -1352,12 +1371,18 @@
       // fetchVideosの時点で既に関連度順(YouTubeの検索アルゴリズム順)になっているので、
       // 再生回数で並べ替えて精度を落とさないよう、その順番をそのまま使う
       var topN = items.slice(0, Math.min(15, items.length));
-      // シャッフルして重複なしで抽出
-      var shuffled = topN.slice();
-      for(var i = shuffled.length - 1; i > 0; i--){
-        var j = Math.floor(Math.random() * (i + 1));
-        var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+      // 登録チャンネルの動画を先頭側に寄せて、選択肢に優先的に入るようにする
+      var favMatches = topN.filter(function(item){ return favIds.indexOf(item.snippet.channelId) !== -1; });
+      var others = topN.filter(function(item){ return favIds.indexOf(item.snippet.channelId) === -1; });
+      function shuffleArr(arr){
+        var a = arr.slice();
+        for(var i = a.length - 1; i > 0; i--){
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+        }
+        return a;
       }
+      var shuffled = shuffleArr(favMatches).concat(shuffleArr(others));
       var picks = shuffled.slice(0, Math.min(3, shuffled.length));
       // たまに(だいたい7回に1回くらい)3択の中に「レア」が混ざる、というちょっとした当たり演出
       if(Math.random() < 0.15){
@@ -1365,7 +1390,6 @@
         picks[rareIdx].__rare = true;
       }
       gachaCurrentQuery = pickedQuery;
-      gachaCurrentChannelId = pickedChannelId;
       gachaReservePool = shuffled.slice(picks.length); // 残りは「今後表示しない」で消した時の差し替え候補として温存
       showGachaChoices(picks);
     } catch(e){
@@ -1403,7 +1427,7 @@
           addExp(30);
           showIdleToast('★ レア当たり! +30 EXP');
         }
-        playVideo(item.id, 'gacha', item.snippet.title);
+        playVideo(item.id, 'gacha', item.snippet.title, item.snippet.description);
       }, 180);
     });
     var hideBtn = el.querySelector('.gacha-choice-hide-btn');
@@ -1439,10 +1463,10 @@
         return cand;
       }
     }
-    // 予備プールが尽きたら、同じクエリ(またはチャンネル)で新たに取得しに行く
-    if(!gachaCurrentQuery && !gachaCurrentChannelId) return null;
+    // 予備プールが尽きたら、同じクエリで新たに取得しに行く
+    if(!gachaCurrentQuery) return null;
     try{
-      var items = await fetchVideos(gachaCurrentChannelId ? '' : gachaCurrentQuery, 25, gachaCurrentChannelId);
+      var items = await fetchVideos(gachaCurrentQuery, 25);
       items = items.filter(function(item){
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
@@ -1450,11 +1474,15 @@
         return !currentGachaPicks.some(function(p){ return p && p.id === item.id; });
       });
       if(items.length === 0) return null;
-      // 関連度順(fetchVideosの並び)をそのまま使う
+      // 関連度順(fetchVideosの並び)をベースに、登録チャンネルの動画を優先する
       var topN = items.slice(0, Math.min(15, items.length));
+      var favIds2 = channels.filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
+      var favMatches2 = topN.filter(function(item){ return favIds2.indexOf(item.snippet.channelId) !== -1; });
+      var others2 = topN.filter(function(item){ return favIds2.indexOf(item.snippet.channelId) === -1; });
+      var ordered = favMatches2.concat(others2);
       // 取得分の残りは次回の差し替え用の予備プールに足しておく
-      gachaReservePool = gachaReservePool.concat(topN.slice(1));
-      return topN[0];
+      gachaReservePool = gachaReservePool.concat(ordered.slice(1));
+      return ordered[0];
     } catch(e){ return null; }
   }
   function isExcludedId(id){
@@ -1683,7 +1711,7 @@
             '<div class="title">' + escapeHtml(snippet.title) + '</div>' +
             '<div class="channel">' + escapeHtml(snippet.channelTitle) + '</div>' +
           '</div>';
-        el.addEventListener('click', function(){ playVideo(item.id, 'search', snippet.title); });
+        el.addEventListener('click', function(){ playVideo(item.id, 'search', snippet.title, snippet.description); });
         container.appendChild(el);
       });
     } catch(e){
@@ -1777,6 +1805,34 @@
   var currentSource = 'search';
   var currentVideoTitle = '';
   var currentVideoId = '';
+  var currentChapters = [];
+
+  // ---- 動画概要欄からチャプター(目次)を抽出する ----
+  // YouTubeの仕様に準じ、「0:00 見出し」のような行が2つ以上ある場合のみチャプターとして扱う
+  function parseChaptersFromDescription(desc){
+    if(!desc) return [];
+    var lines = desc.split(/\r?\n/);
+    var found = [];
+    var timeLineRe = /^\s*[\-•\*\u25cf\(\[]*\s*((?:\d{1,2}:)?\d{1,2}:\d{2})\s*[\)\]]*\s*[-–—:]?\s*(.*)$/;
+    lines.forEach(function(line){
+      var m = line.match(timeLineRe);
+      if(!m) return;
+      var parts = m[1].split(':').map(function(p){ return parseInt(p, 10); });
+      var sec = 0;
+      if(parts.length === 3){ sec = parts[0]*3600 + parts[1]*60 + parts[2]; }
+      else { sec = parts[0]*60 + parts[1]; }
+      var label = m[2].trim();
+      found.push({ time: sec, label: label });
+    });
+    if(found.length < 2) return [];
+    found.sort(function(a, b){ return a.time - b.time; });
+    // 同じ時刻の重複行は除去
+    var dedup = [];
+    found.forEach(function(c){
+      if(dedup.length === 0 || dedup[dedup.length - 1].time !== c.time){ dedup.push(c); }
+    });
+    return dedup;
+  }
 
   // ---- 画面スリープ防止(ラジオ/モザイク画面表示中は端末が自動で画面ロックされないようにする) ----
   // ※これはあくまで「画面を点けたまま」再生を続けるための対策で、
@@ -1836,10 +1892,12 @@
   }
   setupMediaSession();
 
-  function playVideo(id, source, title){
+  function playVideo(id, source, title, description){
     currentSource = source;
     currentVideoTitle = title || '再生中の音声';
     currentVideoId = id;
+    currentChapters = parseChaptersFromDescription(description || '');
+    document.getElementById('radioNextChapterBtn').style.display = currentChapters.length > 0 ? '' : 'none';
     var countsToward = (source === 'search');
 
     if(countsToward){
@@ -1961,6 +2019,24 @@
     } else {
       ytPlayer.playVideo();
       syncPlayPauseUI(true);
+    }
+  });
+
+  // ---- ラジオ画面: 次のチャプターまで飛ぶボタン ----
+  document.getElementById('radioNextChapterBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(!ytPlayer || !ytPlayer.getCurrentTime || currentChapters.length === 0) return;
+    var cur = ytPlayer.getCurrentTime();
+    var next = null;
+    for(var i = 0; i < currentChapters.length; i++){
+      if(currentChapters[i].time > cur + 0.5){ next = currentChapters[i]; break; }
+    }
+    if(next){
+      ytPlayer.seekTo(next.time, true);
+      if(ytPlayer.getPlayerState && ytPlayer.getPlayerState() !== 1){
+        ytPlayer.playVideo();
+        syncPlayPauseUI(true);
+      }
     }
   });
 
