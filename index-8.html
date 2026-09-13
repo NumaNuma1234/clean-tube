@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Clean Tube">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho:wght@500;700&family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
+<title>Clean Tube</title>
+<style>
+  :root{
+    --bg: #E9DEC3;
+    --bg-2: #DCCBA0;
+    --surface: #F6EEDA;
+    --surface-2: #FBF6E8;
+    --border: #C7AE83;
+    --wood: #5C4029;
+    --wood-dark: #3C2A19;
+    --text: #3A2A1A;
+    --text-secondary: #6B5642;
+    --text-muted: #9C8968;
+    --accent: #A9622E;
+    --accent-2: #C98A46;
+    --danger: #9B4632;
+    --ai: #33506B;      /* 藍色 - 深く落ち着いた青 */
+    --akane: #A8483C;   /* 茜色 - くすんだ朱赤(判子のような色) */
+    --matcha: #6E7A48;  /* 抹茶色 - くすんだ緑 */
+    --radius: 14px;
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.22, 0 0 0 0 0.16, 0 0 0 0 0.1, 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{ height:100%; }
+  body{
+    margin:0;
+    position:relative;
+    background:
+      radial-gradient(ellipse at top, rgba(255,250,235,0.55), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    color:var(--text);
+    font-family:'Shippori Mincho', 'Zilla Slab', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    -webkit-font-smoothing:antialiased;
+    padding: max(12px, env(safe-area-inset-top)) 0 0;
+    display:flex; flex-direction:column; min-height:100vh;
+  }
+  body::before{
+    content:'';
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    opacity:0.5;
+    background:
+      var(--noise),
+      repeating-linear-gradient(0deg, rgba(92,64,41,0.03) 0px, rgba(92,64,41,0.03) 1px, transparent 1px, transparent 3px),
+      repeating-linear-gradient(90deg, rgba(92,64,41,0.02) 0px, rgba(92,64,41,0.02) 1px, transparent 1px, transparent 3px);
+    background-size: 140px 140px, auto, auto;
+    mix-blend-mode: multiply;
+  }
+  h1{
+    position:relative; z-index:1;
+    margin:0 0 6px;
+    padding:13px 14px 13px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:
+      var(--noise),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px),
+      linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 5px rgba(0,0,0,0.2);
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; line-height:1; }
+  .brand-en{
+    font-family:'Zilla Slab', serif; font-weight:700; font-size:20px;
+    letter-spacing:0.01em; color:#F3E6C8;
+    text-shadow:0 1px 3px rgba(0,0,0,0.35);
+  }
+  .brand-ja{
+    font-family:'Shippori Mincho', serif; font-weight:500; font-size:10px;
+    letter-spacing:0.32em; color:rgba(255,214,150,0.62);
+  }
+  .gear{
+    background:rgba(0,0,0,0.18); border:1px solid rgba(255,255,255,0.14);
+    color:#E8D9B5; font-size:16px; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .gear:active{ background:rgba(0,0,0,0.32); }
+  .counter{
+    position:relative; z-index:1;
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'DotGothic16', monospace; font-size:12.5px; color:var(--text-secondary);
+    margin:8px 16px 12px; padding:6px 12px;
+    background:var(--surface-2); border:0.5px solid var(--border); border-radius:999px;
+    letter-spacing:0.02em;
+    box-shadow: inset 0 1px 2px rgba(58,42,26,0.06);
+  }
+
+  .wisdom-box{
+    position:relative; z-index:1;
+    margin:8px 16px 14px;
+    padding:13px 16px 13px 18px;
+    background:
+      var(--noise),
+      repeating-linear-gradient(0deg, rgba(120,90,50,0.045) 0px, rgba(120,90,50,0.045) 1px, transparent 1px, transparent 3px),
+      var(--surface);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
+    border:1px dashed var(--border);
+    border-left:3px solid var(--ai);
+    border-radius:10px;
+    box-shadow: inset 0 1px 3px rgba(51,80,107,0.10), inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 6px rgba(60,42,20,0.07);
+    cursor:pointer;
+  }
+  .wisdom-label{ font-family:'DotGothic16', monospace; font-size:10px; color:var(--ai); letter-spacing:0.18em; margin-bottom:5px; }
+  .wisdom-text{ font-family:'Shippori Mincho', serif; font-style:italic; font-size:13.5px; line-height:1.75; color:var(--text-secondary); }
+
+  .settings{
+    display:none; margin:0 16px 12px;
+    background: var(--noise), var(--surface);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
+    border:0.5px solid var(--border); border-radius:var(--radius); padding:14px;
+    box-shadow: inset 0 1px 3px rgba(58,42,26,0.05);
+  }
+  .settings.open{ display:block; }
+  .label{ font-size:12px; color:var(--text-secondary); margin:14px 0 6px; font-weight:600; }
+  .label:first-child{ margin-top:0; }
+  .row{ display:flex; gap:8px; }
+  input[type=text], input[type=password]{
+    flex:1;
+    background:var(--surface-2);
+    border:0.5px solid var(--border);
+    color:var(--text);
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:14px;
+    min-width:0;
+    box-shadow: inset 0 1px 3px rgba(58,42,26,0.08);
+  }
+  input:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+  button{
+    background:var(--surface-2);
+    border:0.5px solid var(--border);
+    color:var(--text);
+    border-radius:10px;
+    padding:9px 14px;
+    font-size:14px;
+    font-weight:500;
+    white-space:nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  button:active{ transform:scale(0.97); }
+  button.primary{
+    background: linear-gradient(160deg, var(--accent-2), var(--accent));
+    border-color:var(--accent); color:#fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 6px rgba(169,98,46,0.3);
+  }
+  .err{ font-size:12px; color:var(--danger); margin:0 16px 8px; display:none; }
+  .spinner{ font-size:12px; color:var(--text-muted); padding:4px 16px; display:none; }
+
+  main{ flex:1; display:flex; flex-direction:column; padding: 4px 16px calc(260px + env(safe-area-inset-bottom)); min-height:0; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: min-content;
+    align-items: start;
+    align-content: start;
+    gap:8px;
+    flex:1;
+    min-height:0;
+  }
+  .result-item{
+    display:flex; flex-direction:column;
+    cursor:pointer;
+    background:
+      var(--noise),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
+    border:0.5px solid var(--border);
+    border-radius:12px; padding:0; overflow:hidden; text-align:left;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -1px 2px rgba(58,42,26,0.06),
+      0 1px 2px rgba(58,42,26,0.05),
+      0 4px 10px rgba(58,42,26,0.06);
+    transition: transform 0.15s ease;
+  }
+  .result-item:active{ transform:scale(0.98); }
+  .result-item img{ width:100%; aspect-ratio:16/10; object-fit:cover; display:block; }
+  .result-item .meta{ padding:6px 8px 8px; }
+  .result-item .title{
+    font-size:12px; font-weight:500; line-height:1.3; color:var(--text);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .result-item .channel{ font-size:10px; color:var(--text-muted); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .empty{ font-size:13px; color:var(--text-muted); grid-column:1/-1; }
+
+  .exp-panel.hidden{ display:none; }
+  .exp-panel{
+    position:relative;
+    background:
+      var(--noise),
+      radial-gradient(circle at 30% 18%, rgba(255,255,255,0.18), transparent 55%),
+      linear-gradient(135deg, var(--accent-2) 0%, var(--accent) 55%, var(--wood) 100%);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
+    border-radius:24px;
+    padding:34px 20px 28px;
+    margin: 14px 0 20px;
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    box-shadow:
+      0 10px 28px rgba(90,55,25,0.30),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -18px 30px rgba(0,0,0,0.14);
+    overflow:hidden;
+  }
+  .exp-ring-wrap{ position:relative; width:160px; height:160px; }
+  .exp-ring{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:rgba(255,255,255,0.25); stroke-width:9; }
+  .ring-fg{
+    fill:none; stroke:#FFFFFF; stroke-width:9; stroke-linecap:round;
+    stroke-dasharray:326.7; stroke-dashoffset:326.7;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.4,0.64,1);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
+  }
+  .exp-center{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:2px;
+  }
+  .exp-level{ font-family:'DotGothic16', monospace; font-size:30px; font-weight:400; color:#fff; letter-spacing:0.04em; text-shadow:0 1px 4px rgba(0,0,0,0.15); }
+  .exp-sub{ font-family:'DotGothic16', monospace; font-size:13px; color:rgba(255,255,255,0.9); font-weight:400; letter-spacing:0.02em; }
+  .stamp-row{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:22px; position:relative; z-index:1; }
+  .stamp-row .stamp-icon{ font-size:18px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
+  .stamp-row .stamp-hint{ font-size:11px; color:rgba(255,255,255,0.85); }
+
+  .idle-toast{
+    position:fixed; left:16px; right:16px; top:max(12px, env(safe-area-inset-top));
+    background:var(--text); color:var(--bg);
+    font-family:'DotGothic16', monospace; font-size:14px; font-weight:400; letter-spacing:0.02em;
+    text-align:center; padding:12px 16px; border-radius:14px; z-index:1100;
+    opacity:0; visibility:hidden; transform:translateY(-8px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+  }
+  .idle-toast.show{ opacity:1; visibility:visible; transform:translateY(0); }
+
+  .bottom-dock{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:10;
+    padding: 14px 0 calc(10px + env(safe-area-inset-bottom));
+    background: rgba(240,238,230,0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 0.5px solid rgba(224,221,211,0.7);
+    transition: top 0.2s ease, bottom 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  }
+  .bottom-dock.centered{
+    top:38%; bottom:auto; transform:translateY(-50%);
+    border-radius:20px; margin:0 8px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.18);
+  }
+  .gacha-row{ padding: 0 16px 12px; }
+  .gacha-big{
+    position:relative;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%;
+    background: linear-gradient(135deg, #E7B285 0%, var(--accent) 55%, #a8502f 100%);
+    color:#fff; border:none;
+    border-radius:18px;
+    padding:18px 20px;
+    font-size:18px; font-weight:800; letter-spacing:0.02em;
+    box-shadow: 0 6px 18px rgba(201,100,66,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+    overflow:hidden;
+    animation: gachaPulse 2.4s ease-in-out infinite;
+  }
+  .gacha-big::after{
+    content:'';
+    position:absolute; top:0; left:-60%; width:35%; height:100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+    transform: skewX(-20deg);
+    animation: gachaShine 3.2s ease-in-out infinite;
+  }
+  .gacha-big:active{ transform:scale(0.97); animation-play-state:paused; }
+  @keyframes gachaPulse{
+    0%,100%{ box-shadow: 0 6px 18px rgba(201,100,66,0.45), inset 0 1px 0 rgba(255,255,255,0.35); transform:scale(1); }
+    50%{ box-shadow: 0 9px 26px rgba(201,100,66,0.65), inset 0 1px 0 rgba(255,255,255,0.45); transform:scale(1.015); }
+  }
+  @keyframes gachaShine{
+    0%{ left:-60%; }
+    55%{ left:130%; }
+    100%{ left:130%; }
+  }
+  .quick-tags{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:8px;
+    padding: 0 16px 12px;
+  }
+  .quick-tags:empty{ padding:0; }
+  .quick-tags button{
+    flex:0 0 auto;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--matcha);
+    border-radius:999px; padding:9px 16px; font-size:13px; font-weight:600;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.5);
+    letter-spacing:0.01em;
+  }
+  .searchbar{
+    background:var(--surface);
+    border:0.5px solid var(--border);
+    border-radius:16px;
+    padding: 10px 10px;
+    margin: 0 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .searchbar .row{ gap:8px; }
+  .searchbar input{ font-size:16px; padding:12px 14px; border-radius:12px; }
+  .searchbar button{ font-size:15px; padding:12px 18px; border-radius:12px; }
+
+  .overlay{
+    position:fixed; inset:0; background:#000; z-index:1000;
+    display:flex; flex-direction:column; justify-content:center;
+    opacity:0; visibility:hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+  .overlay.open{ opacity:1; visibility:visible; }
+  .overlay .close{
+    position:absolute; top:max(16px, env(safe-area-inset-top)); right:16px;
+    z-index:1001; background:rgba(0,0,0,0.5); color:#fff; border:none;
+    width:36px; height:36px; border-radius:18px; font-size:18px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mosaic-toggle-btn{
+    position:absolute; top:max(16px, env(safe-area-inset-top)); left:16px;
+    z-index:1001;
+    display:flex; align-items:center; gap:7px;
+    background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.28);
+    color:rgba(255,255,255,0.92);
+    padding:9px 14px 9px 12px; border-radius:20px;
+    font-family:'DotGothic16', monospace; font-size:12px; letter-spacing:0.04em;
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  }
+  .mosaic-toggle-btn:active{ transform:scale(0.96); }
+  .mosaic-toggle-btn.active{
+    background: linear-gradient(135deg, rgba(255,210,140,0.95), rgba(255,155,70,0.9));
+    border-color:rgba(255,215,150,0.95);
+    color:#3C2A19;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,215,150,0.35);
+  }
+  .mosaic-grid{
+    display:grid; grid-template-columns:repeat(2, 5px); grid-template-rows:repeat(2, 5px); gap:2px;
+    flex:0 0 auto;
+  }
+  .mosaic-grid span{ width:5px; height:5px; background:currentColor; border-radius:1px; opacity:0.9; }
+  .mosaic-label{ white-space:nowrap; }
+  .overlay iframe{ width:100%; height:100%; border:0; }
+  .player-frame{ position:relative; width:100%; aspect-ratio:16/9; max-height:100vh; overflow:hidden; background:#000; }
+  .player-frame.eco-shrink #player{ width:160px; height:103px; }
+  #player{ position:absolute; top:0; left:0; width:100%; height:114%; }
+  .video-loading{
+    position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    z-index:1001; pointer-events:none; padding:0 32px;
+  }
+  .video-loading.show{ display:flex; }
+  .video-loading .loading-cup{ width:64px; height:64px; }
+  .loading-quote{
+    font-family:'Shippori Mincho', serif; font-size:13px; line-height:1.8; letter-spacing:0.03em;
+    color:rgba(255,230,190,0.85); text-align:center; max-width:280px;
+    opacity:0; transition:opacity 0.4s ease;
+  }
+  .loading-quote::before{ content:'「'; color:rgba(255,205,130,0.5); }
+  .loading-quote::after{ content:'」'; color:rgba(255,205,130,0.5); }
+  .loading-quote.show{ opacity:1; }
+  .screen-cover{
+    position:absolute; inset:0;
+    background:
+      var(--noise),
+      radial-gradient(circle at 50% 38%, rgba(92,64,41,0.88), rgba(20,14,8,0.95));
+    background-blend-mode: soft-light, normal;
+    background-size: 140px 140px, auto;
+    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+    z-index:999;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+    cursor:pointer; padding:20px;
+  }
+  .screen-cover.show{ display:flex; }
+  .screen-cover .note{ color:rgba(243,230,200,0.4); font-size:11px; text-align:center; padding:0 32px; margin-top:4px; }
+  .screen-cover.player-loading > *{ opacity:0; pointer-events:none; transition:opacity 0.2s ease; }
+
+  .radio-dial-wrap{ position:relative; width:104px; height:104px; display:flex; align-items:center; justify-content:center; }
+  .radio-dial-wrap::before{
+    content:''; position:absolute; inset:-5px; border-radius:50%;
+    background: conic-gradient(from 0deg, rgba(255,205,130,0.05), rgba(255,205,130,0.9), rgba(255,205,130,0.05) 40%, rgba(255,205,130,0.05));
+    animation: dialRingSpin 5.5s linear infinite;
+    opacity:0.85;
+  }
+  .radio-dial-wrap.paused::before{ animation-play-state:paused; opacity:0.35; }
+  @keyframes dialRingSpin{ to{ transform:rotate(360deg); } }
+  .radio-dial{
+    position:relative; width:92px; height:92px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #8a6038, #3C2A19 72%);
+    border:3px solid rgba(20,14,8,0.6);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.35), 0 12px 30px rgba(0,0,0,0.55), inset 0 2px 6px rgba(255,255,255,0.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .radio-dial::after{
+    content:''; position:absolute; inset:11px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:
+      0 0 0 8px rgba(255,255,255,0.04),
+      0 0 0 9px rgba(0,0,0,0.15),
+      0 0 0 18px rgba(255,255,255,0.025);
+  }
+  .radio-dial-glow{
+    width:56px; height:56px; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,205,130,0.95), rgba(255,150,60,0.08) 70%);
+    animation: radioGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes radioGlow{
+    0%,100%{ opacity:0.5; transform:scale(0.9); }
+    50%{ opacity:1; transform:scale(1.08); }
+  }
+  .radio-eyebrow{
+    font-family:'Zilla Slab', serif; font-weight:600; font-size:11px; letter-spacing:0.34em;
+    color:rgba(255,205,130,0.75); margin-top:2px;
+  }
+  .radio-title{
+    font-family:'Shippori Mincho', 'Zilla Slab', serif; color:#F3E6C8; font-size:15px; text-align:center;
+    max-width:280px; line-height:1.6; margin-top:-6px;
+    overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  }
+  .radio-time{ font-family:'DotGothic16', monospace; color:rgba(243,230,200,0.75); font-size:13px; letter-spacing:0.08em; }
+
+  .radio-ctrl-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin:4px 0 2px; }
+  .radio-ctrl-wrap{ position:relative; width:132px; height:132px; display:flex; align-items:center; justify-content:center; }
+  .radio-ctrl-wrap::before{
+    content:''; position:absolute; inset:-3px; border-radius:50%;
+    background: conic-gradient(from 90deg, rgba(255,205,130,0.9), rgba(255,205,130,0.05) 30%, rgba(255,205,130,0.05) 70%, rgba(255,205,130,0.9));
+    filter: blur(0.5px);
+    opacity:0.7;
+    animation: ctrlHalo 2.6s ease-in-out infinite;
+  }
+  .radio-ctrl-wrap.paused::before{ animation-play-state:paused; opacity:0.28; }
+  @keyframes ctrlHalo{
+    0%,100%{ opacity:0.55; transform:scale(0.98) rotate(0deg); }
+    50%{ opacity:0.85; transform:scale(1.02) rotate(6deg); }
+  }
+  .radio-ctrl-btn{
+    position:relative; width:118px; height:118px; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255,255,255,0.14), rgba(255,255,255,0) 42%),
+      linear-gradient(165deg, rgba(70,50,32,0.92) 0%, rgba(24,17,10,0.95) 100%);
+    border:1px solid rgba(255,214,150,0.4);
+    color:#F6E9CE;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+      0 16px 34px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.16),
+      inset 0 -14px 22px rgba(0,0,0,0.4),
+      0 0 0 6px rgba(255,205,130,0.05);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+  }
+  .radio-ctrl-btn:active{ transform:scale(0.92); }
+  .radio-ctrl-btn .ctrl-icon{ filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+  .radio-ctrl-btn .icon-play{ margin-left:5px; }
+
+  .radio-chapter-btn{
+    position:relative; width:56px; height:56px; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255,255,255,0.12), rgba(255,255,255,0) 42%),
+      linear-gradient(165deg, rgba(70,50,32,0.82) 0%, rgba(24,17,10,0.88) 100%);
+    border:1px solid rgba(255,214,150,0.32);
+    color:rgba(243,230,200,0.85);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    box-shadow:
+      0 8px 18px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      inset 0 -8px 12px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease;
+  }
+  .radio-chapter-btn:active{ transform:scale(0.9); }
+  .radio-chapter-btn .ctrl-icon{ filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  .radio-chapter-btn .chapter-btn-label{ font-family:'DotGothic16', monospace; font-size:7.5px; letter-spacing:0.03em; color:rgba(243,230,200,0.7); }
+
+  .radio-speed-row{
+    display:flex; gap:2px; padding:4px; margin-top:2px;
+    background: var(--noise), rgba(0,0,0,0.32);
+    background-blend-mode: soft-light, normal;
+    background-size: 140px 140px, auto;
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:18px;
+  }
+  .radio-speed-btn{
+    padding:6px 10px; border-radius:14px;
+    font-family:'DotGothic16', monospace; font-size:11px; letter-spacing:0.02em;
+    background:transparent; border:none;
+    color:rgba(243,230,200,0.55);
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .radio-speed-btn:active{ transform:scale(0.94); }
+  .radio-speed-btn.active{
+    background: linear-gradient(180deg, rgba(255,215,150,0.95), rgba(255,180,90,0.9));
+    color:#3C2A19; font-weight:700;
+    box-shadow:0 2px 8px rgba(0,0,0,0.35);
+  }
+
+
+  .cooldown-overlay{
+    position:fixed; inset:0; z-index:900;
+    background:
+      radial-gradient(ellipse at top, rgba(255,250,235,0.55), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .cooldown-overlay::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg, rgba(92,64,41,0.03) 0px, rgba(92,64,41,0.03) 1px, transparent 1px, transparent 3px),
+      repeating-linear-gradient(90deg, rgba(92,64,41,0.02) 0px, rgba(92,64,41,0.02) 1px, transparent 1px, transparent 3px);
+  }
+  .cooldown-overlay.open{ display:flex; }
+  .cooldown-card{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    padding:36px 30px 30px;
+    max-width:280px;
+    background:
+      var(--noise),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
+    border:0.5px solid var(--border);
+    border-radius:26px;
+    box-shadow: 0 14px 34px rgba(58,42,26,0.16), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -3px 8px rgba(58,42,26,0.05);
+    animation: cooldownCardIn 0.4s cubic-bezier(0.22,1.4,0.36,1);
+  }
+  @keyframes cooldownCardIn{
+    0%{ opacity:0; transform:translateY(10px) scale(0.95); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .cooldown-icon{ font-size:26px; filter: drop-shadow(0 2px 4px rgba(58,42,26,0.12)); }
+  .cooldown-ring-wrap{ position:relative; width:140px; height:140px; }
+  .cooldown-ring{ width:100%; height:100%; transform:rotate(-90deg); }
+  .cd-ring-bg{ fill:none; stroke:var(--border); stroke-width:8; opacity:0.45; }
+  .cd-ring-fg{
+    fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round;
+    stroke-dasharray:326.7; stroke-dashoffset:0;
+    transition: stroke-dashoffset 0.92s linear;
+    filter: drop-shadow(0 0 5px rgba(169,98,46,0.5));
+  }
+  .cooldown-num-wrap{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:1px;
+  }
+  .cooldown-overlay .num{ font-family:'DotGothic16', monospace; font-size:42px; font-weight:400; color:var(--text); line-height:1; }
+  .cooldown-unit{ font-family:'DotGothic16', monospace; font-size:10px; color:var(--text-muted); letter-spacing:0.2em; }
+  .cooldown-overlay .msg{ font-size:13.5px; color:var(--text-secondary); text-align:center; line-height:1.65; }
+
+  #endPromptOverlay{ z-index:1100; } /* 動画オーバーレイ(z-index:1000)より上に出す */
+  .end-prompt-btn-row{ display:flex; gap:14px; margin-top:8px; }
+  .end-prompt-btn{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    width:112px; padding:14px 6px 12px; border-radius:18px;
+    border:1.5px solid var(--border);
+    background: var(--surface-2);
+    box-shadow: 0 6px 14px rgba(58,42,26,0.1);
+    transition: transform 0.15s ease;
+  }
+  .end-prompt-btn:active{ transform:scale(0.95); }
+  .end-prompt-icon{ font-size:26px; line-height:1; font-weight:700; }
+  .end-prompt-label{ font-size:11.5px; color:var(--text-secondary); line-height:1.3; }
+  .end-prompt-maru .end-prompt-icon{ color:#3D7A4C; }
+  .end-prompt-maru{ border-color:#3D7A4C; }
+  .end-prompt-batsu .end-prompt-icon{ color:var(--accent); }
+  .end-prompt-batsu{ border-color:var(--accent); }
+
+  .gacha-choice-overlay{
+    position:fixed; inset:0; z-index:1200;
+    display:none; align-items:flex-end; justify-content:center;
+    background:
+      radial-gradient(circle at 50% 15%, rgba(233,175,120,0.25), transparent 55%),
+      rgba(20,14,8,0.72);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity:0; transition: opacity 0.25s ease;
+  }
+  .gacha-choice-overlay.open{ display:flex; opacity:1; }
+  .gacha-choice-panel{
+    position:relative; width:100%; max-width:480px;
+    background:
+      var(--noise),
+      repeating-linear-gradient(0deg, rgba(120,90,50,0.045) 0px, rgba(120,90,50,0.045) 1px, transparent 1px, transparent 3px),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal, normal;
+    background-size: 140px 140px, auto, auto;
+    border-radius:28px 28px 0 0;
+    padding: 22px 16px calc(22px + env(safe-area-inset-bottom));
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.35), inset 0 3px 10px rgba(58,42,26,0.06);
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+  }
+  .gacha-choice-overlay.open .gacha-choice-panel{ transform:translateY(0); }
+  .gacha-choice-head{ display:flex; flex-direction:column; align-items:center; gap:2px; margin-bottom:16px; }
+  .gacha-choice-eyebrow{ font-family:'Zilla Slab', serif; font-weight:600; font-size:12px; letter-spacing:0.24em; color:var(--text-muted); }
+  .gacha-choice-title{ font-family:'Shippori Mincho', serif; font-size:17px; font-weight:700; color:var(--text); letter-spacing:0.03em; }
+  .gacha-choice-cards{ display:flex; flex-direction:column; gap:12px; }
+  .gacha-choice-card{
+    position:relative;
+    display:flex; align-items:center; gap:12px;
+    text-align:left;
+    background:
+      var(--noise),
+      linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
+    border:0.5px solid var(--border);
+    border-radius:16px;
+    padding:10px;
+    overflow:hidden;
+    cursor:pointer;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -2px 4px rgba(58,42,26,0.05),
+      0 4px 14px rgba(58,42,26,0.10);
+    opacity:0; transform: translateY(18px) scale(0.94);
+    animation: gachaCardIn 0.5s cubic-bezier(0.22,1.4,0.36,1) forwards;
+  }
+  .gacha-choice-card:nth-child(1){ animation-delay:0.08s; }
+  .gacha-choice-card:nth-child(2){ animation-delay:0.22s; }
+  .gacha-choice-card:nth-child(3){ animation-delay:0.36s; }
+  @keyframes gachaCardIn{
+    0%{ opacity:0; transform:translateY(18px) scale(0.94); }
+    60%{ opacity:1; }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .gacha-choice-card::before{
+    content:''; position:absolute; inset:0; border-radius:16px;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+    background-size:200% 100%; background-position:150% 0;
+    pointer-events:none; opacity:0;
+  }
+  .gacha-choice-card.reveal-shine::before{
+    animation: gachaCardShine 0.7s ease-out forwards;
+  }
+  @keyframes gachaCardShine{
+    0%{ opacity:1; background-position:150% 0; }
+    100%{ opacity:0; background-position:-50% 0; }
+  }
+  .gacha-choice-card:active{ transform:scale(0.97); }
+  .gacha-choice-card.rare{
+    border-color:#FFD36E;
+    animation: rareGlow 1.8s ease-in-out infinite;
+  }
+  @keyframes rareGlow{
+    0%,100%{ box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(58,42,26,0.05), 0 0 0 1px rgba(255,211,110,0.4), 0 6px 20px rgba(255,180,60,0.28); }
+    50%{ box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 4px rgba(58,42,26,0.05), 0 0 0 1px rgba(255,225,150,0.75), 0 8px 26px rgba(255,180,60,0.55); }
+  }
+  .gacha-rare-badge{
+    position:absolute; top:6px; left:50%; transform:translateX(-50%); z-index:2;
+    background: linear-gradient(135deg, #FFE29A, #FFB347);
+    color:#5C3A0A; font-size:10px; font-weight:800; letter-spacing:0.04em;
+    padding:3px 9px; border-radius:999px; white-space:nowrap;
+    box-shadow:0 2px 6px rgba(255,150,40,0.5);
+  }
+  .gacha-choice-num{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    color:#fff; font-family:'DotGothic16', monospace; font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(169,98,46,0.4);
+    position:absolute; top:6px; left:6px; z-index:2;
+  }
+  .gacha-choice-hide-btn{
+    position:absolute; top:6px; right:6px; z-index:3;
+    width:24px; height:24px; border-radius:50%;
+    background:var(--surface-2); border:1.5px solid var(--akane);
+    color:var(--akane); font-size:11px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(168,72,60,0.25), inset 0 1px 2px rgba(168,72,60,0.08);
+  }
+  .gacha-choice-hide-btn:active{ transform:scale(0.9); background:var(--akane); color:#fff; }
+  .gacha-choice-card.penalty{
+    justify-content:center; gap:14px; cursor:default;
+    background: linear-gradient(180deg, rgba(120,90,50,0.06), transparent);
+    animation:none; opacity:1; pointer-events:none;
+  }
+  .gacha-penalty-ring-wrap{ position:relative; width:64px; height:64px; flex:0 0 auto; }
+  .gacha-penalty-ring{ width:100%; height:100%; transform:rotate(-90deg); }
+  .gp-ring-bg{ fill:none; stroke:var(--border); stroke-width:6; opacity:0.5; }
+  .gp-ring-fg{
+    fill:none; stroke:var(--accent); stroke-width:6; stroke-linecap:round;
+    stroke-dasharray:169.6; stroke-dashoffset:0;
+    transition: stroke-dashoffset 0.92s linear;
+  }
+  .gacha-penalty-num{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'DotGothic16', monospace; font-size:19px; color:var(--text);
+  }
+  .gacha-penalty-label{ font-size:11.5px; color:var(--text-muted); line-height:1.6; }
+  .gacha-choice-card img{
+    width:104px; aspect-ratio:16/10; object-fit:cover; border-radius:11px; flex:0 0 auto;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+  .gacha-choice-card .meta{ min-width:0; flex:1; }
+  .gacha-choice-card .title{
+    font-size:13px; font-weight:500; line-height:1.4; color:var(--text);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .gacha-choice-card .channel{ font-size:11px; color:var(--text-muted); margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gacha-choice-foot{ display:flex; gap:10px; margin-top:16px; }
+  .gacha-choice-reroll, .gacha-choice-cancel{
+    flex:1; padding:12px; border-radius:14px; font-size:13px; font-weight:600;
+    background:var(--surface-2); border:0.5px solid var(--border); color:var(--text-secondary);
+  }
+  .gacha-choice-reroll{ color:var(--matcha); border-color:rgba(125,143,71,0.35); }
+
+  .chan-row{
+    display:flex; align-items:center; justify-content:space-between;
+    border:0.5px solid var(--border); border-radius:10px;
+    background: var(--noise), var(--surface-2);
+    background-blend-mode: overlay, normal;
+    background-size: 140px 140px, auto;
+    padding:9px 10px; margin-bottom:6px;
+    box-shadow: inset 0 1px 2px rgba(58,42,26,0.05);
+  }
+  .chan-row a{ color:var(--accent); text-decoration:none; font-size:13px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chan-row button{ padding:4px 10px; margin-left:8px; font-size:12px; }
+
+  @media (min-width: 640px){
+    body{ max-width:min(94vw, 760px); margin:0 auto; border-left:0.5px solid var(--border); border-right:0.5px solid var(--border); }
+    .bottom-dock{ width:min(94vw, 760px); max-width:min(94vw, 760px); left:50%; right:auto; transform:translateX(-50%); }
+    .bottom-dock.centered{ transform:translate(-50%, -50%); }
+  }
+</style>
+</head>
+<body>
+
+  <h1>
+    <span class="brand">
+      <span class="brand-en">Clean Tube</span>
+      <span class="brand-ja">クリーンチューブ</span>
+    </span>
+    <button class="gear" id="settingsBtn" aria-label="設定">⚙</button>
+  </h1>
+  <div class="counter" id="dailyCounter"></div>
+  <div class="wisdom-box" id="wisdomBox">
+    <div class="wisdom-label" id="wisdomLabel">今日の雑学</div>
+    <div class="wisdom-text" id="wisdomText">バナナは木になっているように見えるが、植物学的には世界最大の「草」の実である。</div>
+  </div>
+
+  <div class="settings" id="settingsCard">
+    <div class="label">他の端末と同期する(Firebase Realtime Database URL)</div>
+    <div class="row" style="margin-bottom:14px;">
+      <input type="text" id="firebaseUrlInput" placeholder="https://xxxx-default-rtdb.firebaseio.com">
+      <button id="saveFirebaseBtn">保存</button>
+    </div>
+    <div class="label">YouTube Data API キー</div>
+    <div class="row" style="margin-bottom:14px;">
+      <input type="password" id="apiKeyInput" placeholder="APIキーを貼り付け">
+      <button id="saveKeyBtn">保存</button>
+    </div>
+    <div class="label">🎲 ガチャの追加タグ(任意・カンマ区切り)</div>
+    <div class="row" style="margin-bottom:6px;">
+      <input type="text" id="gachaQueryInput" placeholder="空欄でもOK。例: ゆる言語学ラジオ,本要約チャンネル">
+      <button id="saveGachaBtn">保存</button>
+    </div>
+    <div class="label" style="margin-top:0; margin-bottom:14px; opacity:0.65; font-size:11px;">未入力でも、標準で「本の要約・生き方が変わる系」のテーマから選ばれます</div>
+    <div class="label">1日の通常視聴回数の目標(検索から再生した分のみ)</div>
+    <div class="row" style="margin-bottom:14px;">
+      <input type="number" id="dailyGoalInput" min="1" max="20" value="3">
+      <button id="saveGoalBtn">保存</button>
+    </div>
+    <div class="label">お気に入りチャンネル(おまかせの精度アップに使われます)</div>
+    <div id="channelList"></div>
+    <div class="row" style="margin-top:8px;">
+      <input type="text" id="channelNameInput" placeholder="チャンネル名">
+      <input type="text" id="channelUrlInput" placeholder="チャンネルURL">
+    </div>
+    <button id="addChannelBtn" style="width:100%; margin-top:8px;">登録</button>
+    <div class="err" id="channelErr" style="margin:8px 0 0;"></div>
+
+    <div class="label" style="margin-top:18px;">見たくないチャンネル(検索・おまかせの両方から除外されます)</div>
+    <div id="blockedChannelList"></div>
+    <div class="row" style="margin-top:8px;">
+      <input type="text" id="blockedChannelNameInput" placeholder="チャンネル名">
+      <input type="text" id="blockedChannelUrlInput" placeholder="チャンネルURL">
+    </div>
+    <button id="addBlockedChannelBtn" style="width:100%; margin-top:8px;">除外リストに追加</button>
+    <div class="err" id="blockedChannelErr" style="margin:8px 0 0;"></div>
+  </div>
+
+  <div class="err" id="queryErr"></div>
+  <div class="spinner" id="spinner">検索中…</div>
+
+  <main>
+    <div class="exp-panel" id="expPanel">
+      <div class="exp-ring-wrap">
+        <svg class="exp-ring" viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="exp-center">
+          <div class="exp-level" id="expLevelText">Lv.1</div>
+          <div class="exp-sub" id="expSubText">0 / 100 EXP</div>
+        </div>
+      </div>
+      <div class="stamp-row" id="stampRow"></div>
+    </div>
+    <div class="idle-toast" id="idleToast"></div>
+
+    <div class="grid" id="results">
+      <div class="empty">検索すると、ここに8件表示されます(10分未満の動画は除外)。</div>
+    </div>
+  </main>
+
+  <div class="bottom-dock" id="bottomDock">
+    <div class="gacha-row">
+      <button class="gacha-big" id="gachaBigBtn">🎲 おまかせ</button>
+    </div>
+    <div class="quick-tags" id="quickTags"></div>
+    <div class="searchbar">
+      <div class="row">
+        <input type="text" id="queryInput" placeholder="見たい動画・トピックを検索">
+        <button class="primary" id="searchBtn">検索</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <button class="close" id="closeBtn" aria-label="閉じる">✕</button>
+    <button class="mosaic-toggle-btn" id="radioToggleBtn" style="display:none;" aria-label="画面を見えにくくする">
+      <span class="mosaic-grid"><span></span><span></span><span></span><span></span></span>
+      <span class="mosaic-label">モザイク</span>
+    </button>
+
+    <div class="player-frame" id="playerFrame">
+      <div id="player"></div>
+    </div>
+    <div class="video-loading" id="videoLoading">
+      <svg class="loading-cup" viewBox="0 0 80 80" aria-hidden="true">
+        <defs>
+          <clipPath id="cupClip">
+            <path d="M20 30 L24 58 Q40 64 56 58 L60 30 Z"/>
+          </clipPath>
+        </defs>
+        <g stroke="rgba(255,214,150,0.55)" stroke-width="2.2" fill="none" stroke-linecap="round">
+          <path d="M32 24 Q28 18 32 13 Q36 8 32 3">
+            <animate attributeName="opacity" values="0;0.85;0" dur="3.2s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0 6;0 -4;0 6" dur="3.2s" repeatCount="indefinite"/>
+          </path>
+          <path d="M48 24 Q44 18 48 13 Q52 8 48 3">
+            <animate attributeName="opacity" values="0;0.85;0" dur="3.2s" begin="1.1s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="translate" values="0 6;0 -4;0 6" dur="3.2s" begin="1.1s" repeatCount="indefinite"/>
+          </path>
+        </g>
+        <rect x="18" y="60" width="44" height="0" fill="#D98A3D" clip-path="url(#cupClip)">
+          <animate attributeName="y" values="60;28;28;60" keyTimes="0;0.54;0.85;1" dur="6.5s" repeatCount="indefinite"/>
+          <animate attributeName="height" values="0;32;32;0" keyTimes="0;0.54;0.85;1" dur="6.5s" repeatCount="indefinite"/>
+        </rect>
+        <path d="M20 30 L24 58 Q40 64 56 58 L60 30 Z" fill="none" stroke="#F3E6C8" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M60 32 Q70 32 70 40 Q70 48 60 47" fill="none" stroke="#F3E6C8" stroke-width="2.5"/>
+        <ellipse cx="40" cy="30" rx="20" ry="4" fill="none" stroke="#F3E6C8" stroke-width="2.5"/>
+        <ellipse cx="40" cy="66" rx="26" ry="4" fill="none" stroke="rgba(243,230,200,0.5)" stroke-width="2"/>
+      </svg>
+      <div class="loading-quote" id="loadingQuote"></div>
+    </div>
+    <div class="screen-cover" id="screenCover">
+      <div class="radio-dial-wrap" id="radioDialWrap">
+        <div class="radio-dial">
+          <div class="radio-dial-glow"></div>
+        </div>
+      </div>
+      <div class="radio-eyebrow">NOW PLAYING</div>
+      <div class="radio-title" id="radioTitle">再生中の音声</div>
+      <div class="radio-time" id="radioTime">00:00 / 00:00</div>
+      <div class="radio-ctrl-row">
+        <button class="radio-chapter-btn" id="radioPrevChapterBtn" aria-label="前のチャプターへ" style="display:none;">
+          <svg class="ctrl-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M19 5.5v13a1 1 0 0 1-1.5.87l-9.5-6.5a1 1 0 0 1 0-1.74l9.5-6.5A1 1 0 0 1 19 5.5z" fill="currentColor"></path>
+            <rect x="4.6" y="5" width="2.4" height="14" rx="1" fill="currentColor"></rect>
+          </svg>
+          <span class="chapter-btn-label">前の章</span>
+        </button>
+        <div class="radio-ctrl-wrap" id="radioCtrlWrap">
+          <button class="radio-ctrl-btn" id="radioPlayPauseBtn" aria-label="再生/一時停止">
+            <svg class="ctrl-icon icon-pause" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true">
+              <rect x="6" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+              <rect x="13.5" y="4" width="4.5" height="16" rx="1.4" fill="currentColor"></rect>
+            </svg>
+            <svg class="ctrl-icon icon-play" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true" style="display:none;">
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l10.5-6.86a1 1 0 0 0 0-1.7L9.53 4.29A1 1 0 0 0 8 5.14z" fill="currentColor"></path>
+            </svg>
+          </button>
+        </div>
+        <button class="radio-chapter-btn" id="radioNextChapterBtn" aria-label="次のチャプターへ" style="display:none;">
+          <svg class="ctrl-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M5 5.5v13a1 1 0 0 0 1.5.87l9.5-6.5a1 1 0 0 0 0-1.74l-9.5-6.5A1 1 0 0 0 5 5.5z" fill="currentColor"></path>
+            <rect x="17" y="5" width="2.4" height="14" rx="1" fill="currentColor"></rect>
+          </svg>
+          <span class="chapter-btn-label">次の章</span>
+        </button>
+      </div>
+      <div class="radio-speed-row">
+        <button class="radio-speed-btn" data-speed="0.75">0.75x</button>
+        <button class="radio-speed-btn active" data-speed="1">1.0x</button>
+        <button class="radio-speed-btn" data-speed="1.25">1.25x</button>
+        <button class="radio-speed-btn" data-speed="1.5">1.5x</button>
+        <button class="radio-speed-btn" data-speed="2">2.0x</button>
+      </div>
+      <div class="note">画面を見えにくくしています(タップで解除)</div>
+    </div>
+  </div>
+
+  <div class="cooldown-overlay" id="endPromptOverlay">
+    <div class="cooldown-card">
+      <div class="cooldown-icon">🤔</div>
+      <div class="msg" style="font-size:15px; font-weight:600; margin-bottom:2px;">もう見なくていい?</div>
+      <div class="msg">最後まで見終わりました。似た動画を今後の候補から減らしますか?</div>
+      <div class="end-prompt-btn-row">
+        <button class="end-prompt-btn end-prompt-maru" id="endPromptYesBtn" aria-label="もう見なくていい">
+          <span class="end-prompt-icon">○</span>
+          <span class="end-prompt-label">もう見なくていい</span>
+        </button>
+        <button class="end-prompt-btn end-prompt-batsu" id="endPromptNoBtn" aria-label="また見たい">
+          <span class="end-prompt-icon">✕</span>
+          <span class="end-prompt-label">また見たい</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cooldown-overlay" id="cooldownOverlay">
+    <div class="cooldown-card">
+      <div class="cooldown-icon">☕</div>
+      <div class="cooldown-ring-wrap">
+        <svg class="cooldown-ring" viewBox="0 0 120 120">
+          <circle class="cd-ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="cd-ring-fg" id="cooldownRingFg" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="cooldown-num-wrap">
+          <div class="num" id="cooldownNum">10</div>
+          <div class="cooldown-unit">SEC</div>
+        </div>
+      </div>
+      <div class="msg" id="cooldownMsg">少し休憩してから次へ</div>
+    </div>
+  </div>
+
+  <div class="gacha-choice-overlay" id="gachaChoiceOverlay">
+    <div class="gacha-choice-panel">
+      <div class="gacha-choice-head">
+        <div class="gacha-choice-eyebrow">GACHA RESULT</div>
+        <div class="gacha-choice-title">🎲 3つの中から選んでください</div>
+      </div>
+      <div class="gacha-choice-cards" id="gachaChoiceCards"></div>
+      <div class="gacha-choice-foot">
+        <button class="gacha-choice-reroll" id="gachaChoiceReroll">🔄 引き直す</button>
+        <button class="gacha-choice-cancel" id="gachaChoiceCancel">やめる</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+(async function(){
+  // ---- YouTube IFrame APIの準備完了コールバックは真っ先に登録する ----
+  // (この下にFirebase同期のfetch待ち等があるため、後回しにするとAPI側の準備完了より
+  //  登録が遅れてコールバックが一生呼ばれず、動画が読み込めなくなることがあるため)
+  var ytPlayer = null;
+  var apiReady = false;
+  var pendingPlay = null;
+
+  window.onYouTubeIframeAPIReady = function(){
+    // クリックされてから YT.Player を生成すると読み込みが遅いので、
+    // API準備完了の時点で裏側(非表示のオーバーレイ内)にプレイヤーを先に用意しておく。
+    // ユーザーがクリックした際は loadVideoById を呼ぶだけで済むため体感速度が大きく改善する。
+    // ここで videoId を指定せずに生成すると、動画未選択の状態として
+    // YouTube側の「その他の動画」候補グリッドが表示されたままになってしまうため、
+    // 何か1本(Google公式のIFrame APIデモ動画)をcue状態(再生はしない)で読み込ませておく。
+    ytPlayer = new YT.Player('player', {
+      videoId: 'M7lc1UVf-VE',
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: { autoplay: 0, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3 },
+      events: {
+        onReady: function(){
+          apiReady = true;
+          hideVideoLoading();
+          if(pendingPlay){
+            var p = pendingPlay; pendingPlay = null;
+            loadIntoPlayer(p.id, p.startSeconds);
+          }
+        },
+        onStateChange: function(e){
+          if(e.data !== -1){ hideVideoLoading(); }
+          enforceEcoQuality();
+          handlePlayerStateChange(e.data);
+        }
+      }
+    });
+  };
+  // 万一、上の登録より先にAPI側の読み込みが完了していた場合の保険(念のための二重チェック)
+  if(window.YT && window.YT.Player && !ytPlayer){
+    window.onYouTubeIframeAPIReady();
+  }
+
+  var KEY_STORAGE = 'clean-tube-api-key';
+  var CHAN_STORAGE = 'clean-tube-channels';
+  var BLOCKED_CHAN_STORAGE = 'clean-tube-blocked-channels';
+  var COUNTER_STORAGE = 'clean-tube-daily-counter';
+  var RESULT_COUNT = 8;
+  var COOLDOWN_STEP = 10;      // 1本ごとに+10秒
+  var MIN_DURATION_SECONDS = 600; // 10分未満は除外(通常検索のみ)
+
+  // ---- 他端末との同期(Firebase Realtime Database) ----
+  var FIREBASE_URL_STORAGE = 'clean-tube-firebase-url';
+  var firebaseUrl = localStorage.getItem(FIREBASE_URL_STORAGE) || '';
+  var SYNC_KEYS = [
+    'clean-tube-api-key','clean-tube-channels','clean-tube-blocked-channels','clean-tube-daily-counter',
+    'clean-tube-gacha-queries',
+    'clean-tube-quick-tags','clean-tube-watched-ids','clean-tube-hidden-ids','clean-tube-daily-goal',
+    'clean-tube-stamps','clean-tube-stamp-checked-date','clean-tube-total-exp',
+    'clean-tube-last-stop-ts','clean-tube-positions'
+  ];
+  function collectSyncState(){
+    var obj = {};
+    SYNC_KEYS.forEach(function(k){
+      var v = localStorage.getItem(k);
+      if(v !== null){ obj[k] = v; }
+    });
+    return obj;
+  }
+  function applySyncState(obj){
+    if(!obj) return;
+    // 一覧系(視聴済み/非表示リスト)は「上書き」ではなく合体させる。
+    // そうしないと、他端末の少し古いデータで同期した瞬間に、直前にこの端末で
+    // 「今後表示しない」にしたばかりの動画が復活してしまうことがあるため。
+    var LIST_KEYS = ['clean-tube-watched-ids', 'clean-tube-hidden-ids'];
+    Object.keys(obj).forEach(function(k){
+      if(SYNC_KEYS.indexOf(k) === -1) return;
+      if(LIST_KEYS.indexOf(k) !== -1){
+        var localList = [];
+        try{ localList = JSON.parse(localStorage.getItem(k) || '[]'); }catch(e){}
+        var remoteList = [];
+        try{ remoteList = JSON.parse(obj[k] || '[]'); }catch(e){}
+        var merged = localList.slice();
+        remoteList.forEach(function(id){ if(merged.indexOf(id) === -1){ merged.push(id); } });
+        localStorage.setItem(k, JSON.stringify(merged));
+      } else {
+        localStorage.setItem(k, obj[k]);
+      }
+    });
+  }
+  async function pullRemoteState(){
+    if(!firebaseUrl) return;
+    try{
+      var res = await fetch(firebaseUrl.replace(/\/$/, '') + '/state.json');
+      var data = await res.json();
+      applySyncState(data);
+    } catch(e){ /* オフラインなどは無視してローカルのデータで続行 */ }
+  }
+  var pushTimer = null;
+  function pushRemoteState(){
+    if(!firebaseUrl) return;
+    if(pushTimer){ clearTimeout(pushTimer); }
+    pushTimer = setTimeout(function(){
+      fetch(firebaseUrl.replace(/\/$/, '') + '/state.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(collectSyncState())
+      }).catch(function(){});
+    }, 800);
+  }
+
+  await pullRemoteState(); // 他端末のデータがあれば、ここでこの端末に反映してから読み込みを続ける
+
+  // ---- watched history (再生位置の記憶などに使う。候補からの除外にはもう使わない) ----
+  var WATCHED_STORAGE = 'clean-tube-watched-ids';
+  function loadWatched(){
+    try{ return JSON.parse(localStorage.getItem(WATCHED_STORAGE) || '[]'); }
+    catch(e){ return []; }
+  }
+  function markWatched(id){
+    var w = loadWatched();
+    if(w.indexOf(id) === -1){
+      w.push(id);
+      if(w.length > 500){ w = w.slice(w.length - 500); }
+      localStorage.setItem(WATCHED_STORAGE, JSON.stringify(w));
+      pushRemoteState();
+    }
+  }
+
+  // ---- hidden list (「今後表示しない」で消した動画は二度と出さない) ----
+  var HIDDEN_STORAGE = 'clean-tube-hidden-ids';
+  function loadHidden(){
+    try{ return JSON.parse(localStorage.getItem(HIDDEN_STORAGE) || '[]'); }
+    catch(e){ return []; }
+  }
+  function markHidden(id){
+    var h = loadHidden();
+    if(h.indexOf(id) === -1){
+      h.push(id);
+      if(h.length > 500){ h = h.slice(h.length - 500); }
+      localStorage.setItem(HIDDEN_STORAGE, JSON.stringify(h));
+      pushRemoteState();
+    }
+  }
+
+  // 「今後表示しない」指定の動画・「見たくないチャンネル」の動画を候補から除外する
+  function filterExcluded(items){
+    var h = loadHidden();
+    var blockedIds = loadBlockedChannels().filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
+    return items.filter(function(item){
+      if(h.indexOf(item.id) !== -1) return false;
+      if(item.snippet && blockedIds.indexOf(item.snippet.channelId) !== -1) return false;
+      return true;
+    });
+  }
+  // 「今後表示しない」指定の動画は検索でも復活させない(フォールバックなし)
+  function filterUnwatched(items){
+    return filterExcluded(items);
+  }
+
+  // ---- 再生位置の記憶(途中でやめた動画を、次に選んだ時に続きから再生する) ----
+  var POSITIONS_STORAGE = 'clean-tube-positions';
+  function loadPositions(){
+    try{ return JSON.parse(localStorage.getItem(POSITIONS_STORAGE) || '{}'); }
+    catch(e){ return {}; }
+  }
+  function savePositionLocal(id, seconds){
+    if(!id) return;
+    var p = loadPositions();
+    if(seconds > 5){
+      p[id] = Math.floor(seconds);
+    } else {
+      delete p[id];
+    }
+    var keys = Object.keys(p);
+    if(keys.length > 300){
+      keys.slice(0, keys.length - 300).forEach(function(k){ delete p[k]; });
+    }
+    localStorage.setItem(POSITIONS_STORAGE, JSON.stringify(p));
+  }
+  function clearPosition(id){
+    if(!id) return;
+    var p = loadPositions();
+    if(p[id] !== undefined){
+      delete p[id];
+      localStorage.setItem(POSITIONS_STORAGE, JSON.stringify(p));
+    }
+  }
+
+  // ---- daily counter (検索から手動再生した回数のみをカウント) ----
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function loadCounter(){
+    try{
+      var raw = JSON.parse(localStorage.getItem(COUNTER_STORAGE) || '{}');
+      if(raw.date !== todayStr()) return { date: todayStr(), count: 0 };
+      return raw;
+    } catch(e){ return { date: todayStr(), count: 0 }; }
+  }
+  function saveCounter(c){ localStorage.setItem(COUNTER_STORAGE, JSON.stringify(c)); pushRemoteState(); }
+
+  // ---- daily goal (⚙で設定) ----
+  var DAILY_GOAL_STORAGE = 'clean-tube-daily-goal';
+  var dailyGoal = parseInt(localStorage.getItem(DAILY_GOAL_STORAGE), 10) || 3;
+  document.getElementById('dailyGoalInput').value = dailyGoal;
+  document.getElementById('saveGoalBtn').addEventListener('click', function(){
+    var v = parseInt(document.getElementById('dailyGoalInput').value, 10);
+    if(v && v > 0){
+      dailyGoal = v;
+      localStorage.setItem(DAILY_GOAL_STORAGE, String(v));
+      pushRemoteState();
+      document.getElementById('settingsCard').classList.remove('open');
+    }
+  });
+
+  // ---- ご褒美スタンプ ----
+  var STAMP_STORAGE = 'clean-tube-stamps';
+  var STAMP_CHECK_STORAGE = 'clean-tube-stamp-checked-date';
+  function loadStamps(){
+    try{ return JSON.parse(localStorage.getItem(STAMP_STORAGE) || '[]'); }
+    catch(e){ return []; }
+  }
+  function renderStamps(){
+    var stamps = loadStamps();
+    var row = document.getElementById('stampRow');
+    row.innerHTML = '';
+    if(stamps.length === 0){
+      var hint = document.createElement('span');
+      hint.className = 'stamp-hint';
+      hint.textContent = '目標達成の翌日にスタンプが貯まります';
+      row.appendChild(hint);
+      return;
+    }
+    stamps.slice(-14).forEach(function(){
+      var span = document.createElement('span');
+      span.className = 'stamp-icon';
+      span.textContent = '💮';
+      row.appendChild(span);
+    });
+  }
+  function awardStamp(dateStr){
+    var stamps = loadStamps();
+    if(stamps.indexOf(dateStr) === -1){
+      stamps.push(dateStr);
+      localStorage.setItem(STAMP_STORAGE, JSON.stringify(stamps));
+      pushRemoteState();
+    }
+    renderStamps();
+    showIdleToast('🎉 前日の目標達成、スタンプ獲得!');
+  }
+
+  // 日付が変わった時、前日分の検索視聴回数を目標と照らしてスタンプ判定する(リロード連打でも二重判定しない)
+  function checkDailyRolloverForStamp(){
+    var raw;
+    try{ raw = JSON.parse(localStorage.getItem(COUNTER_STORAGE) || 'null'); }
+    catch(e){ raw = null; }
+    if(raw && raw.date && raw.date !== todayStr()){
+      var alreadyChecked = localStorage.getItem(STAMP_CHECK_STORAGE);
+      if(alreadyChecked !== raw.date){
+        if(typeof raw.count === 'number' && raw.count <= dailyGoal){
+          awardStamp(raw.date);
+        }
+        localStorage.setItem(STAMP_CHECK_STORAGE, raw.date);
+      }
+      saveCounter({ date: todayStr(), count: 0 });
+    }
+  }
+  checkDailyRolloverForStamp();
+
+  var counter = loadCounter();
+  function renderCounter(){
+    document.getElementById('dailyCounter').textContent =
+      '今日の検索視聴: ' + counter.count + ' / 目標' + dailyGoal + '回';
+  }
+  renderCounter();
+
+  // ---- 今日の雑学(息抜きになる、ちょっと誰かに話したくなる一言知識) ----
+  var WISDOM_QUOTES = [
+    { text:'バナナは木になっているように見えるが、植物学的には世界最大の「草」の実である。', tag:'植物' },
+    { text:'ハチミツは腐らない食品として知られ、数千年前の古代エジプトの壺から見つかったものも食べられる状態だった。', tag:'食べ物' },
+    { text:'タコの心臓は3つあり、血液には銅が含まれているため血の色が青い。', tag:'生き物' },
+    { text:'ラクダのこぶには水ではなく、主に脂肪が蓄えられている。', tag:'生き物' },
+    { text:'コアラは1日のうち20時間近くを眠って過ごす。', tag:'生き物' },
+    { text:'「乾杯」でグラスを合わせる習慣は、中世ヨーロッパで飲み物に毒が入っていないことを示すためだった、という説がある。', tag:'歴史' },
+    { text:'雷が光ってから音が聞こえるまでの秒数に約340mをかけると、雷までのおおよその距離がわかる。', tag:'自然科学' },
+    { text:'日本の47都道府県のうち、海に面していない内陸県は8つある(栃木・群馬・埼玉・山梨・長野・岐阜・滋賀・奈良)。', tag:'地理' },
+    { text:'「サボる」という言葉は、フランス語の「サボタージュ(sabotage)」が語源とされている。', tag:'言葉' },
+    { text:'東京2020オリンピックのメダルは、使用済みの携帯電話などの小型家電から回収した金属で作られた。', tag:'雑学' },
+    { text:'人間のくしゃみは、瞬間的に時速150km近い速さに達することがある。', tag:'人体' },
+    { text:'富士山は現在も活火山に分類されており、直近の噴火は江戸時代の1707年(宝永大噴火)。', tag:'地理' },
+    { text:'ホッキョクグマの毛は実は白ではなく透明で、光の反射によって白く見えている。', tag:'生き物' },
+    { text:'「消しゴム」が発明される前、鉛筆の文字はパンの白い部分をちぎって消していた。', tag:'歴史' },
+    { text:'紙を一枚、何回折っても物理的には10回前後が限界とされている(紙の大きさによって多少前後する)。', tag:'雑学' },
+    { text:'ワインやチーズと同じく、味噌や醤油も微生物による発酵でうま味が作られている。', tag:'食べ物' },
+    { text:'ピアノの鍵盤は88鍵あり、これは一般的なピアノでほぼ統一された数として知られている。', tag:'音楽' },
+    { text:'南極は「砂漠」に分類されることがある。降水量(降雪量)が非常に少ないため。', tag:'地理' },
+    { text:'光は1秒間で地球を約7周半できるほどの速さで進む。', tag:'宇宙' },
+    { text:'人間の骨は生まれたときは約300個あるが、成長の過程でくっつき合い、大人になる頃には206個になる。', tag:'人体' },
+    { text:'エベレストの標高は、プレートの移動によって今も少しずつ(年間数mmほど)高くなり続けている。', tag:'地理' },
+    { text:'チーターは時速100kmを超える速さを出せるが、そのスピードを維持できるのはわずか数十秒ほど。', tag:'生き物' },
+    { text:'「サンドイッチ」という料理名は、考案者とされるイギリスの貴族「サンドイッチ伯爵」の名前に由来する。', tag:'食べ物' },
+    { text:'オーロラは、太陽から飛んできた粒子が地球の大気とぶつかることで光る現象である。', tag:'自然科学' },
+    { text:'あくびは人間だけでなく、犬や鳥、魚など多くの動物にも見られる行動である。', tag:'生き物' },
+    { text:'虹は、太陽を背にして立ったときにしか見ることができない。', tag:'自然科学' },
+    { text:'世界で一番小さい国はバチカン市国で、その面積は東京ディズニーランドよりも小さい。', tag:'地理' },
+    { text:'「ありがとう」という言葉は、「有り難し(めったにない、貴重だ)」という古い表現に由来する。', tag:'言葉' },
+    { text:'オリンピックの五輪マークの5色と白い背景は、当時参加していたほぼすべての国の国旗の色を網羅できるよう考えられたとされる。', tag:'歴史' },
+    { text:'1円硬貨を1枚作るのにかかる金属や製造コストは、額面の1円を上回ると言われている。', tag:'雑学' }
+  ];
+  var lastWisdomIdx = -1;
+  function renderWisdom(idx){
+    var q = WISDOM_QUOTES[idx];
+    document.getElementById('wisdomLabel').textContent = '今日の雑学 ― ' + q.tag;
+    document.getElementById('wisdomText').textContent = q.text;
+    lastWisdomIdx = idx;
+  }
+  function dayOfYear(){
+    var now = new Date();
+    var start = new Date(now.getFullYear(), 0, 0);
+    return Math.floor((now - start) / 86400000);
+  }
+  renderWisdom(dayOfYear() % WISDOM_QUOTES.length); // 「今日の一言」として日替わりで固定表示
+  document.getElementById('wisdomBox').addEventListener('click', function(){
+    var next;
+    do{ next = Math.floor(Math.random() * WISDOM_QUOTES.length); } while(next === lastWisdomIdx && WISDOM_QUOTES.length > 1);
+    renderWisdom(next); // タップでその場でシャッフルも可能
+  });
+
+  // ---- デジタルデトックスEXP / レベル ----
+  var EXP_STORAGE = 'clean-tube-total-exp';
+  var LAST_STOP_STORAGE = 'clean-tube-last-stop-ts';
+  var EXP_PER_LEVEL = 100;
+  var RING_CIRCUMFERENCE = 326.7; // 2 * PI * r(52)
+
+  function loadExp(){ return parseInt(localStorage.getItem(EXP_STORAGE), 10) || 0; }
+  function saveExp(v){ localStorage.setItem(EXP_STORAGE, String(v)); }
+  function addExp(amount){
+    var v = loadExp() + amount;
+    saveExp(v);
+    renderExp();
+    pushRemoteState();
+    return v;
+  }
+
+  function renderExp(){
+    var total = loadExp();
+    var level = Math.floor(total / EXP_PER_LEVEL) + 1;
+    var into = total % EXP_PER_LEVEL;
+    var pct = into / EXP_PER_LEVEL;
+    document.getElementById('expLevelText').textContent = 'Lv.' + level;
+    document.getElementById('expSubText').textContent = into + ' / ' + EXP_PER_LEVEL + ' EXP';
+    document.getElementById('ringFg').style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - pct));
+  }
+
+  var idleToastTimer = null;
+  function showIdleToast(msg){
+    var t = document.getElementById('idleToast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if(idleToastTimer){ clearTimeout(idleToastTimer); }
+    idleToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
+  }
+
+  function markStopped(){
+    localStorage.setItem(LAST_STOP_STORAGE, String(Date.now()));
+    pushRemoteState();
+  }
+
+  function runIdleBonus(){
+    var last = parseInt(localStorage.getItem(LAST_STOP_STORAGE), 10);
+    var now = Date.now();
+    if(last){
+      var elapsedHours = (now - last) / 3600000;
+      var cappedHours = Math.min(elapsedHours, 24); // 1日分を上限にキャップ
+      var bonusHours = Math.floor(cappedHours);
+      if(bonusHours >= 1){
+        var bonus = bonusHours * 10;
+        addExp(bonus);
+        showIdleToast(bonusHours + '時間放置達成!+' + bonus + ' EXP');
+      }
+    }
+    markStopped();
+  }
+
+  renderExp();
+  renderStamps();
+  runIdleBonus();
+
+  // ---- settings / API key ----
+  document.getElementById('firebaseUrlInput').value = firebaseUrl;
+  document.getElementById('saveFirebaseBtn').addEventListener('click', function(){
+    var v = document.getElementById('firebaseUrlInput').value.trim();
+    firebaseUrl = v;
+    localStorage.setItem(FIREBASE_URL_STORAGE, v);
+    pushRemoteState();
+    document.getElementById('settingsCard').classList.remove('open');
+  });
+
+  var apiKey = localStorage.getItem(KEY_STORAGE) || '';
+  document.getElementById('apiKeyInput').value = apiKey;
+
+  document.getElementById('settingsBtn').addEventListener('click', function(){
+    document.getElementById('settingsCard').classList.toggle('open');
+  });
+  if(!apiKey){ document.getElementById('settingsCard').classList.add('open'); }
+
+  document.getElementById('saveKeyBtn').addEventListener('click', function(){
+    apiKey = document.getElementById('apiKeyInput').value.trim();
+    localStorage.setItem(KEY_STORAGE, apiKey);
+    pushRemoteState();
+    document.getElementById('settingsCard').classList.remove('open');
+  });
+
+  // ---- gacha query list ----
+  // 標準で組み込まれている「本の要約・生き方や考え方が変わる系」の検索テーマ。
+  // ユーザーが自分でタグを何も登録していなくても、ここから選ばれるようにする。
+  var GROWTH_QUERIES = [
+    '本要約 おすすめ',
+    'ビジネス書 要約 解説',
+    '自己啓発 名著 解説',
+    '人生を変える考え方',
+    'マインドセット 変える 方法',
+    '習慣化 コツ 解説',
+    '哲学 わかりやすい 解説',
+    '心理学 わかりやすい 解説',
+    '教養 雑学 深掘り 解説',
+    '生き方 名言 解説',
+    '豊かな人生 考え方',
+    '思考法 わかりやすい',
+    'お金の知識 わかりやすい',
+    '人間関係 心理学 解説',
+    '人生 変わった 一冊'
+  ];
+  var GACHA_QUERY_STORAGE = 'clean-tube-gacha-queries';
+  var customGachaQueries = (localStorage.getItem(GACHA_QUERY_STORAGE) || '')
+    .split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  document.getElementById('gachaQueryInput').value = customGachaQueries.join(',');
+  function buildGachaQueries(){
+    // 自分で追加したタグ + 標準の「有益系」テーマを両方使う(重複は除く)
+    var combined = customGachaQueries.concat(GROWTH_QUERIES);
+    var seen = {};
+    return combined.filter(function(q){
+      if(seen[q]) return false;
+      seen[q] = true;
+      return true;
+    });
+  }
+  var gachaQueries = buildGachaQueries();
+  document.getElementById('saveGachaBtn').addEventListener('click', function(){
+    var v = document.getElementById('gachaQueryInput').value.trim();
+    customGachaQueries = v ? v.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+    localStorage.setItem(GACHA_QUERY_STORAGE, customGachaQueries.join(','));
+    gachaQueries = buildGachaQueries();
+    pushRemoteState();
+    document.getElementById('settingsCard').classList.remove('open');
+  });
+
+  var gachaCurrentQuery = '';
+  var gachaReservePool = [];   // 3択に出さなかった予備の候補(非表示にした時の差し替え用)
+  var currentGachaPicks = [];  // 現在3択画面に表示している動画
+
+  async function gachaPlay(){
+    var errEl = document.getElementById('queryErr');
+    errEl.style.display = 'none';
+
+    if(!apiKey){
+      errEl.textContent = '先に⚙からAPIキーを保存してください';
+      errEl.style.display = 'block';
+      document.getElementById('settingsCard').classList.add('open');
+      return;
+    }
+    if(gachaQueries.length === 0){ return; }
+
+    // タグワードでの検索が大前提。その検索結果の中に登録チャンネルの動画があれば、
+    // 3択の選択肢として優先的に採用する(登録チャンネルがヒットしなければ普通に選ぶ)。
+    var pickedQuery = gachaQueries[Math.floor(Math.random() * gachaQueries.length)];
+    var favIds = channels.filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
+    var spinner = document.getElementById('spinner');
+    spinner.style.display = 'block';
+    try{
+      var items = await fetchVideos(pickedQuery, 30);
+      items = items.filter(function(item){
+        return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
+      });
+      items = filterExcluded(items); // 視聴済み・非表示指定の動画は候補から完全に除外する(復活させない)
+      spinner.style.display = 'none';
+      if(items.length === 0){
+        errEl.textContent = '「' + pickedQuery + '」で(未視聴の)動画が見つかりませんでした';
+        errEl.style.display = 'block';
+        return;
+      }
+      // fetchVideosの時点で既に関連度順(YouTubeの検索アルゴリズム順)になっているので、
+      // 再生回数で並べ替えて精度を落とさないよう、その順番をそのまま使う
+      var topN = items.slice(0, Math.min(30, items.length));
+      // 登録チャンネルの動画を先頭側に寄せて、選択肢に優先的に入るようにする
+      var favMatches = topN.filter(function(item){ return favIds.indexOf(item.snippet.channelId) !== -1; });
+      var others = topN.filter(function(item){ return favIds.indexOf(item.snippet.channelId) === -1; });
+      function shuffleArr(arr){
+        var a = arr.slice();
+        for(var i = a.length - 1; i > 0; i--){
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+        }
+        return a;
+      }
+      var shuffled = shuffleArr(favMatches).concat(shuffleArr(others));
+      var picks = shuffled.slice(0, Math.min(3, shuffled.length));
+      // たまに(だいたい7回に1回くらい)3択の中に「レア」が混ざる、というちょっとした当たり演出
+      if(Math.random() < 0.15){
+        var rareIdx = Math.floor(Math.random() * picks.length);
+        picks[rareIdx].__rare = true;
+      }
+      gachaCurrentQuery = pickedQuery;
+      gachaReservePool = shuffled.slice(picks.length); // 残りは「今後表示しない」で消した時の差し替え候補として温存
+      showGachaChoices(picks);
+    } catch(e){
+      spinner.style.display = 'none';
+      errEl.textContent = e.message || '通信エラーが発生しました';
+      errEl.style.display = 'block';
+    }
+  }
+
+  // ---- gacha: 3択の選択画面 ----
+  function gachaCardHtml(item, idx){
+    var snippet = item.snippet;
+    var thumb = (snippet.thumbnails.medium || snippet.thumbnails.default).url;
+    var rareBadge = item.__rare ? '<span class="gacha-rare-badge">★ レア</span>' : '';
+    return (
+      rareBadge +
+      '<span class="gacha-choice-num">' + (idx + 1) + '</span>' +
+      '<button class="gacha-choice-hide-btn" data-idx="' + idx + '" aria-label="今後表示しない" title="今後表示しない">🚫</button>' +
+      '<img src="' + thumb + '" alt="">' +
+      '<div class="meta">' +
+        '<div class="title">' + escapeHtml(snippet.title) + '</div>' +
+        '<div class="channel">' + escapeHtml(snippet.channelTitle) + '</div>' +
+      '</div>'
+    );
+  }
+  function bindGachaCard(el, idx){
+    el.addEventListener('click', function(){
+      var item = currentGachaPicks[idx];
+      if(!item) return;
+      var isRare = !!item.__rare;
+      el.classList.add('reveal-shine');
+      setTimeout(function(){
+        hideGachaChoices();
+        if(isRare){
+          addExp(30);
+          showIdleToast('★ レア当たり! +30 EXP');
+        }
+        playVideo(item.id, 'gacha', item.snippet.title, item.snippet.description);
+      }, 180);
+    });
+    var hideBtn = el.querySelector('.gacha-choice-hide-btn');
+    hideBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      hideGachaCandidate(idx);
+    });
+  }
+  function showGachaChoices(items){
+    currentGachaPicks = items.slice();
+    var container = document.getElementById('gachaChoiceCards');
+    container.innerHTML = '';
+    items.forEach(function(item, idx){
+      var el = document.createElement('div');
+      el.className = 'gacha-choice-card' + (item.__rare ? ' rare' : '');
+      el.setAttribute('data-idx', idx);
+      el.innerHTML = gachaCardHtml(item, idx);
+      bindGachaCard(el, idx);
+      container.appendChild(el);
+    });
+    document.getElementById('gachaChoiceOverlay').classList.add('open');
+  }
+  function hideGachaChoices(){
+    document.getElementById('gachaChoiceOverlay').classList.remove('open');
+  }
+
+  // ---- gacha: 3択の中の1枠を「今後表示しない」で消して、新しい候補と差し替える ----
+  async function fetchGachaReplacement(){
+    // まずは残っている予備プールから、まだ除外・表示されていないものを探す
+    while(gachaReservePool.length > 0){
+      var cand = gachaReservePool.shift();
+      if(!isExcludedId(cand.id) && !currentGachaPicks.some(function(p){ return p && p.id === cand.id; })){
+        return cand;
+      }
+    }
+    // 予備プールが尽きたら、同じクエリで新たに取得しに行く
+    if(!gachaCurrentQuery) return null;
+    try{
+      var items = await fetchVideos(gachaCurrentQuery, 30);
+      items = items.filter(function(item){
+        return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
+      });
+      items = filterExcluded(items).filter(function(item){
+        return !currentGachaPicks.some(function(p){ return p && p.id === item.id; });
+      });
+      if(items.length === 0) return null;
+      // 関連度順(fetchVideosの並び)をベースに、登録チャンネルの動画を優先する
+      var topN = items.slice(0, Math.min(30, items.length));
+      var favIds2 = channels.filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
+      var favMatches2 = topN.filter(function(item){ return favIds2.indexOf(item.snippet.channelId) !== -1; });
+      var others2 = topN.filter(function(item){ return favIds2.indexOf(item.snippet.channelId) === -1; });
+      var ordered = favMatches2.concat(others2);
+      // 取得分の残りは次回の差し替え用の予備プールに足しておく
+      gachaReservePool = gachaReservePool.concat(ordered.slice(1));
+      return ordered[0];
+    } catch(e){ return null; }
+  }
+  function isExcludedId(id){
+    return loadHidden().indexOf(id) !== -1;
+  }
+
+  var GACHA_HIDE_PENALTY_SECONDS = 15;
+  var GACHA_PENALTY_RING_CIRC = 169.6; // r=27の円周
+
+  function renderGachaPenaltySlot(card, seconds){
+    card.className = 'gacha-choice-card penalty';
+    card.innerHTML =
+      '<div class="gacha-penalty-ring-wrap">' +
+        '<svg class="gacha-penalty-ring" viewBox="0 0 64 64">' +
+          '<circle class="gp-ring-bg" cx="32" cy="32" r="27"></circle>' +
+          '<circle class="gp-ring-fg" id="' + card.id + '-ring" cx="32" cy="32" r="27"></circle>' +
+        '</svg>' +
+        '<span class="gacha-penalty-num">' + seconds + '</span>' +
+      '</div>' +
+      '<div class="gacha-penalty-label">🚫 非表示にしました<br>次の候補まで少し待ちます</div>';
+  }
+
+  async function hideGachaCandidate(idx){
+    var item = currentGachaPicks[idx];
+    if(!item) return;
+    markHidden(item.id);
+    currentGachaPicks[idx] = null; // 差し替えが決まるまで一旦空席にする(重複防止)
+
+    var card = document.querySelector('.gacha-choice-card[data-idx="' + idx + '"]');
+    if(!card) return;
+    card.id = 'gachaPenaltySlot' + idx;
+    card.setAttribute('data-idx', idx);
+    renderGachaPenaltySlot(card, GACHA_HIDE_PENALTY_SECONDS);
+
+    var ringEl = document.getElementById(card.id + '-ring');
+    var numEl = card.querySelector('.gacha-penalty-num');
+    var remaining = GACHA_HIDE_PENALTY_SECONDS;
+    var timer = setInterval(function(){
+      remaining -= 1;
+      if(remaining < 0){ remaining = 0; }
+      if(numEl){ numEl.textContent = remaining; }
+      if(ringEl){ ringEl.style.strokeDashoffset = (GACHA_PENALTY_RING_CIRC * (1 - remaining / GACHA_HIDE_PENALTY_SECONDS)); }
+      if(remaining <= 0){ clearInterval(timer); }
+    }, 1000);
+
+    // 15秒のペナルティと、差し替え候補の取得を並行して進める(体感待ち時間を減らす)
+    var replacement = null;
+    try{
+      replacement = await fetchGachaReplacement();
+    } catch(e){
+      replacement = null;
+    }
+    await new Promise(function(resolve){
+      var check = setInterval(function(){
+        if(remaining <= 0){ clearInterval(check); resolve(); }
+      }, 150);
+    });
+
+    // 待っている間にユーザーがキャンセル等で画面を閉じていたら何もしない
+    if(!document.body.contains(card)) return;
+
+    if(!replacement){
+      card.remove();
+      return;
+    }
+    currentGachaPicks[idx] = replacement;
+    card.className = 'gacha-choice-card';
+    card.removeAttribute('id');
+    card.innerHTML = gachaCardHtml(replacement, idx);
+    card.classList.add('reveal-shine');
+    bindGachaCard(card, idx);
+  }
+
+  document.getElementById('gachaChoiceCancel').addEventListener('click', function(){
+    hideGachaChoices();
+    startCooldown(15, 'おまかせを中断しました。少し休憩してから次へ');
+  });
+  document.getElementById('gachaChoiceReroll').addEventListener('click', function(){
+    hideGachaChoices();
+    startCooldown(10, '引き直しにはひと呼吸おきましょう', function(){
+      gachaPlay();
+    });
+  });
+
+  // ---- quick tags ----
+  var QUICK_TAGS_STORAGE = 'clean-tube-quick-tags';
+  var quickTags = (localStorage.getItem(QUICK_TAGS_STORAGE) || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+
+  function renderQuickTags(){
+    var wrap = document.getElementById('quickTags');
+    wrap.innerHTML = '';
+
+    quickTags.forEach(function(tag){
+      var btn = document.createElement('button');
+      btn.textContent = tag;
+      btn.addEventListener('click', function(){
+        queryInput.value = tag;
+        doSearch();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+  renderQuickTags();
+  document.getElementById('gachaBigBtn').addEventListener('click', gachaPlay);
+
+  // ---- search bar reposition on focus ----
+  var queryInput = document.getElementById('queryInput');
+  var bottomDock = document.getElementById('bottomDock');
+  var blurTimer = null;
+  queryInput.addEventListener('focus', function(){
+    if(blurTimer){ clearTimeout(blurTimer); blurTimer = null; }
+    bottomDock.classList.add('centered');
+  });
+  queryInput.addEventListener('blur', function(){
+    blurTimer = setTimeout(function(){ bottomDock.classList.remove('centered'); }, 150);
+  });
+
+  // ---- helpers ----
+  function parseDuration(iso){
+    var m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if(!m) return 0;
+    var h = parseInt(m[1] || 0, 10);
+    var min = parseInt(m[2] || 0, 10);
+    var s = parseInt(m[3] || 0, 10);
+    return h*3600 + min*60 + s;
+  }
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  async function fetchVideos(q, maxResults, channelId){
+    var searchUrl = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults='
+      + maxResults + '&regionCode=JP&relevanceLanguage=ja&key=' + encodeURIComponent(apiKey);
+    if(channelId){
+      // 登録チャンネルからのおまかせ: そのチャンネル内に絞って新着順で取得する
+      searchUrl += '&channelId=' + encodeURIComponent(channelId) + '&order=date';
+      if(q){ searchUrl += '&q=' + encodeURIComponent(q); }
+    } else {
+      searchUrl += '&q=' + encodeURIComponent(q);
+    }
+    var searchRes = await fetch(searchUrl);
+    var searchData = await searchRes.json();
+    if(searchData.error) throw new Error(searchData.error.message || 'APIエラー');
+
+    var ids = (searchData.items || []).map(function(i){ return i.id.videoId; }).filter(Boolean);
+    if(ids.length === 0) return [];
+
+    // YouTubeの検索結果(searchData.items)は「関連度順」に並んでいるが、
+    // videos.list APIはid指定の順番を保証してくれないため、後で関連度順に並べ直す
+    var relevanceOrder = {};
+    ids.forEach(function(id, i){ relevanceOrder[id] = i; });
+
+    var detailsUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id='
+      + ids.join(',') + '&key=' + encodeURIComponent(apiKey);
+    var detailsRes = await fetch(detailsUrl);
+    var detailsData = await detailsRes.json();
+    if(detailsData.error) throw new Error(detailsData.error.message || 'APIエラー');
+    var items = detailsData.items || [];
+    items.sort(function(a, b){ return relevanceOrder[a.id] - relevanceOrder[b.id]; });
+    return items;
+  }
+
+  // ---- normal search ----
+  var searchRequestId = 0;
+  async function doSearch(){
+    var errEl = document.getElementById('queryErr');
+    var q = queryInput.value.trim();
+    errEl.style.display = 'none';
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('expPanel').classList.add('hidden');
+    queryInput.blur();
+
+    // 検索ボタンのクリックとEnterキーが同時に反応するなど、検索が重なって呼ばれても
+    // 古い方の結果が後から描画されて「おすすめ欄が2つ」に見えることがないようにする
+    searchRequestId += 1;
+    var myRequestId = searchRequestId;
+
+    if(!apiKey){
+      errEl.textContent = '先に⚙からAPIキーを保存してください';
+      errEl.style.display = 'block';
+      document.getElementById('settingsCard').classList.add('open');
+      document.getElementById('expPanel').classList.remove('hidden');
+      return;
+    }
+    if(!q){
+      errEl.textContent = 'キーワードを入力してください';
+      errEl.style.display = 'block';
+      document.getElementById('expPanel').classList.remove('hidden');
+      return;
+    }
+
+    var spinner = document.getElementById('spinner');
+    spinner.style.display = 'block';
+
+    try{
+      var items = await fetchVideos(q, 25);
+      if(myRequestId !== searchRequestId){ return; } // 後から新しい検索が始まっていたら、この結果は捨てる
+      spinner.style.display = 'none';
+
+      items = items.filter(function(item){
+        return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
+      });
+      items = filterUnwatched(items);
+      // 再生回数ソートは廃止。YouTube APIが返す関連度順(デフォルト)をそのまま採用する
+      items = items.slice(0, RESULT_COUNT);
+
+      if(items.length === 0){
+        errEl.textContent = '10分以上の動画が見つかりませんでした';
+        errEl.style.display = 'block';
+        document.getElementById('expPanel').classList.remove('hidden');
+        return;
+      }
+
+      var container = document.getElementById('results');
+      container.innerHTML = ''; // 描画直前にも念のためクリア(二重表示防止)
+      items.forEach(function(item){
+        var snippet = item.snippet;
+        var thumb = (snippet.thumbnails.medium || snippet.thumbnails.default).url;
+        var el = document.createElement('button');
+        el.className = 'result-item';
+        el.innerHTML =
+          '<img src="' + thumb + '" alt="">' +
+          '<div class="meta">' +
+            '<div class="title">' + escapeHtml(snippet.title) + '</div>' +
+            '<div class="channel">' + escapeHtml(snippet.channelTitle) + '</div>' +
+          '</div>';
+        el.addEventListener('click', function(){ playVideo(item.id, 'search', snippet.title, snippet.description); });
+        container.appendChild(el);
+      });
+    } catch(e){
+      if(myRequestId !== searchRequestId){ return; }
+      spinner.style.display = 'none';
+      errEl.textContent = e.message || '通信エラーが発生しました';
+      errEl.style.display = 'block';
+      document.getElementById('expPanel').classList.remove('hidden');
+    }
+  }
+
+
+  // 注: YouTube側は setPlaybackQuality による強制を現在ほぼ無視するため、
+  // 「前回視聴時の画質を引き継ぐだけ」になりがち。そこで実際に効く方法として、
+  // プレイヤーの表示サイズそのものを小さくする(YouTubeの自動画質選択は表示サイズも見て決めている)。
+  // 見えづらくしている間は画面を覗いても分からないため、これで確実に低画質化する。
+  function enforceEcoQuality(){
+    if(ytPlayer && ytPlayer.setPlaybackQuality){
+      try{ ytPlayer.setPlaybackQuality('tiny'); } catch(e){}
+    }
+  }
+  function setEcoShrink(on){
+    var pf = document.getElementById('playerFrame');
+    if(on){ pf.classList.add('eco-shrink'); } else { pf.classList.remove('eco-shrink'); }
+    enforceEcoQuality();
+  }
+
+  function handlePlayerStateChange(state){
+    // state: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
+    if(state === 0){ // ended: 閉じる前に「もう見なくていい?」を確認する
+      clearPosition(currentVideoId); // 最後まで見た動画は「続きから」の対象から外す
+      showEndPrompt();
+    }
+  }
+
+  // ---- 最後まで見終わった動画: 「もう見なくていい?」の○✕確認 ----
+  var endPromptTimer = null;
+  function showEndPrompt(){
+    document.getElementById('endPromptOverlay').classList.add('open');
+    clearTimeout(endPromptTimer);
+    // 無反応のまま放置された場合は「また見たい」扱いにして自動で閉じる
+    endPromptTimer = setTimeout(function(){ resolveEndPrompt(false); }, 8000);
+  }
+  function resolveEndPrompt(hideIt){
+    clearTimeout(endPromptTimer);
+    document.getElementById('endPromptOverlay').classList.remove('open');
+    if(hideIt && currentVideoId){ markHidden(currentVideoId); } // 今後の候補の優先順位を下げる(=候補から外す)
+    document.getElementById('closeBtn').click();
+  }
+  document.getElementById('endPromptYesBtn').addEventListener('click', function(){ resolveEndPrompt(true); });
+  document.getElementById('endPromptNoBtn').addEventListener('click', function(){ resolveEndPrompt(false); });
+
+  function loadIntoPlayer(id, startSeconds){
+    if(!apiReady || !ytPlayer || !ytPlayer.loadVideoById){ pendingPlay = { id: id, startSeconds: startSeconds }; return; }
+    showVideoLoading();
+    if(startSeconds){
+      ytPlayer.loadVideoById(id, startSeconds);
+    } else {
+      ytPlayer.loadVideoById(id);
+    }
+    enforceEcoQuality();
+  }
+
+  // ---- 動画読み込み中の暇つぶし表示: 通信を増やさず、既存の名言データを使い回す ----
+  var loadingQuoteInterval = null;
+  var lastLoadingQuoteIdx = -1;
+  function showRandomLoadingQuote(){
+    var el = document.getElementById('loadingQuote');
+    var idx;
+    do{ idx = Math.floor(Math.random() * WISDOM_QUOTES.length); } while(idx === lastLoadingQuoteIdx && WISDOM_QUOTES.length > 1);
+    lastLoadingQuoteIdx = idx;
+    el.classList.remove('show');
+    setTimeout(function(){
+      el.textContent = WISDOM_QUOTES[idx].text;
+      el.classList.add('show');
+    }, 200);
+  }
+  var videoLoadingSafetyTimer = null;
+  var videoLoadingShownAt = 0;
+  var VIDEO_LOADING_MIN_MS = 2800; // 読み込みが一瞬で終わっても、注ぐ演出が一瞬で消えないように最低表示時間を設ける
+  function showVideoLoading(){
+    document.getElementById('videoLoading').classList.add('show');
+    document.getElementById('screenCover').classList.add('player-loading');
+    videoLoadingShownAt = Date.now();
+    showRandomLoadingQuote();
+    if(loadingQuoteInterval){ clearInterval(loadingQuoteInterval); }
+    loadingQuoteInterval = setInterval(showRandomLoadingQuote, 4000);
+    // 万一状態変化イベントを取りこぼしても、ここで必ず消えるようにしておく保険
+    if(videoLoadingSafetyTimer){ clearTimeout(videoLoadingSafetyTimer); }
+    videoLoadingSafetyTimer = setTimeout(reallyHideVideoLoading, 8000);
+  }
+  function hideVideoLoading(){
+    var elapsed = Date.now() - videoLoadingShownAt;
+    var remain = VIDEO_LOADING_MIN_MS - elapsed;
+    if(remain > 0){
+      setTimeout(reallyHideVideoLoading, remain);
+    } else {
+      reallyHideVideoLoading();
+    }
+  }
+  function reallyHideVideoLoading(){
+    document.getElementById('videoLoading').classList.remove('show');
+    document.getElementById('screenCover').classList.remove('player-loading');
+    if(loadingQuoteInterval){ clearInterval(loadingQuoteInterval); loadingQuoteInterval = null; }
+    if(videoLoadingSafetyTimer){ clearTimeout(videoLoadingSafetyTimer); videoLoadingSafetyTimer = null; }
+  }
+
+  var currentSource = 'search';
+  var currentVideoTitle = '';
+  var currentVideoId = '';
+  var currentChapters = [];
+
+  // ---- 動画概要欄からチャプター(目次)を抽出する ----
+  // YouTubeの仕様に準じ、「0:00 見出し」のような行が2つ以上ある場合のみチャプターとして扱う
+  function parseChaptersFromDescription(desc){
+    if(!desc) return [];
+    var lines = desc.split(/\r?\n/);
+    var found = [];
+    var timeLineRe = /^\s*[\-•\*\u25cf\(\[]*\s*((?:\d{1,2}:)?\d{1,2}:\d{2})\s*[\)\]]*\s*[-–—:]?\s*(.*)$/;
+    lines.forEach(function(line){
+      var m = line.match(timeLineRe);
+      if(!m) return;
+      var parts = m[1].split(':').map(function(p){ return parseInt(p, 10); });
+      var sec = 0;
+      if(parts.length === 3){ sec = parts[0]*3600 + parts[1]*60 + parts[2]; }
+      else { sec = parts[0]*60 + parts[1]; }
+      var label = m[2].trim();
+      found.push({ time: sec, label: label });
+    });
+    if(found.length < 2) return [];
+    found.sort(function(a, b){ return a.time - b.time; });
+    // 同じ時刻の重複行は除去
+    var dedup = [];
+    found.forEach(function(c){
+      if(dedup.length === 0 || dedup[dedup.length - 1].time !== c.time){ dedup.push(c); }
+    });
+    return dedup;
+  }
+
+  // ---- 画面スリープ防止(ラジオ/モザイク画面表示中は端末が自動で画面ロックされないようにする) ----
+  // ※これはあくまで「画面を点けたまま」再生を続けるための対策で、
+  //   他のアプリに完全に切り替えた場合の再生継続を保証するものではありません
+  //  (これはブラウザ・OS側の制約で、埋め込みYouTube動画では回避できません)。
+  var wakeLock = null;
+  async function requestWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch(e){ wakeLock = null; }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){
+      try{ wakeLock.release(); } catch(e){}
+      wakeLock = null;
+    }
+  }
+  document.addEventListener('visibilitychange', function(){
+    // タブが再びアクティブになった時、再生中であればスリープ防止を掛け直す
+    // (Wake Lockはタブが非表示になると自動的に解除される仕様のため)
+    if(document.visibilityState === 'visible' && document.getElementById('overlay').classList.contains('open')){
+      requestWakeLock();
+    }
+  });
+
+  // ---- メディアセッション(ロック画面・通知欄からの再生/一時停止操作に対応させる) ----
+  function setupMediaSession(){
+    if(!('mediaSession' in navigator)) return;
+    try{
+      navigator.mediaSession.setActionHandler('play', function(){
+        if(ytPlayer && ytPlayer.playVideo){ ytPlayer.playVideo(); }
+        syncPlayPauseUI(true);
+      });
+      navigator.mediaSession.setActionHandler('pause', function(){
+        if(ytPlayer && ytPlayer.pauseVideo){ ytPlayer.pauseVideo(); }
+        syncPlayPauseUI(false);
+      });
+      navigator.mediaSession.setActionHandler('stop', function(){
+        document.getElementById('closeBtn').click();
+      });
+    } catch(e){ /* 未対応ブラウザは無視 */ }
+  }
+  function syncPlayPauseUI(playing){
+    var btn = document.getElementById('radioPlayPauseBtn');
+    var iconPause = btn.querySelector('.icon-pause');
+    var iconPlay = btn.querySelector('.icon-play');
+    var dialWrap = document.getElementById('radioDialWrap');
+    var ctrlWrap = document.getElementById('radioCtrlWrap');
+    iconPause.style.display = playing ? '' : 'none';
+    iconPlay.style.display = playing ? 'none' : '';
+    dialWrap.classList.toggle('paused', !playing);
+    ctrlWrap.classList.toggle('paused', !playing);
+    if('mediaSession' in navigator){
+      try{ navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch(e){}
+    }
+  }
+  setupMediaSession();
+
+  function playVideo(id, source, title, description){
+    currentSource = source;
+    currentVideoTitle = title || '再生中の音声';
+    currentVideoId = id;
+    currentChapters = parseChaptersFromDescription(description || '');
+    document.getElementById('radioNextChapterBtn').style.display = currentChapters.length > 0 ? '' : 'none';
+    document.getElementById('radioPrevChapterBtn').style.display = currentChapters.length > 0 ? '' : 'none';
+    var countsToward = (source === 'search');
+
+    if(countsToward){
+      counter = loadCounter(); // 日付が変わっていたらここで0にリセットされる
+      counter.count += 1;
+      saveCounter(counter);
+      renderCounter();
+    }
+
+    // 途中でやめた動画をもう一度選んだ場合は、続きから再生する
+    var savedPositions = loadPositions();
+    var resumeAt = savedPositions[id];
+
+    document.getElementById('overlay').classList.add('open');
+    setTimeout(function(){ loadIntoPlayer(id, resumeAt); }, 50);
+    markWatched(id);
+
+    document.getElementById('radioTitle').textContent = currentVideoTitle;
+    document.getElementById('radioPlayPauseBtn').querySelector('.icon-pause').style.display = '';
+    document.getElementById('radioPlayPauseBtn').querySelector('.icon-play').style.display = 'none';
+    document.getElementById('radioDialWrap').classList.remove('paused');
+    document.getElementById('radioCtrlWrap').classList.remove('paused');
+    startRadioUpdateLoop();
+    currentPlaybackRate = 1;
+    setRadioSpeedButtons(1);
+
+    if('mediaSession' in navigator){
+      try{
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentVideoTitle,
+          artist: 'Clean Tube',
+          album: source === 'gacha' ? 'おまかせ' : '検索'
+        });
+        navigator.mediaSession.playbackState = 'playing';
+      } catch(e){}
+    }
+    requestWakeLock();
+
+    // 動画再生開始時は常にモザイク(見えにくく)モードから始める。ボタン/タップでいつでも解除できる。
+    var cover = document.getElementById('screenCover');
+    var toggleBtn = document.getElementById('radioToggleBtn');
+    toggleBtn.style.display = 'flex';
+    cover.classList.add('show');
+    toggleBtn.classList.add('active');
+    setEcoShrink(true);
+  }
+
+  document.getElementById('screenCover').addEventListener('click', function(){
+    this.classList.remove('show');
+    document.getElementById('radioToggleBtn').classList.remove('active');
+    setEcoShrink(false);
+  });
+  document.getElementById('radioToggleBtn').addEventListener('click', function(){
+    var cover = document.getElementById('screenCover');
+    cover.classList.toggle('show');
+    var covered = cover.classList.contains('show');
+    this.classList.toggle('active', covered);
+    setEcoShrink(covered);
+  });
+
+  // ---- 再生速度調整(モザイク/見えにくくしている間に使う) ----
+  var currentPlaybackRate = 1;
+  function setRadioSpeedButtons(rate){
+    document.querySelectorAll('.radio-speed-btn').forEach(function(btn){
+      btn.classList.toggle('active', parseFloat(btn.getAttribute('data-speed')) === rate);
+    });
+  }
+  document.querySelectorAll('.radio-speed-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var rate = parseFloat(this.getAttribute('data-speed'));
+      currentPlaybackRate = rate;
+      if(ytPlayer && ytPlayer.setPlaybackRate){
+        try{ ytPlayer.setPlaybackRate(rate); }catch(err){}
+      }
+      setRadioSpeedButtons(rate);
+    });
+  });
+
+  // ---- ラジオ画面: タイトル・再生時間の表示更新 ----
+  var radioUpdateInterval = null;
+  function formatTime(sec){
+    if(!isFinite(sec) || sec < 0) sec = 0;
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+  }
+  function startRadioUpdateLoop(){
+    if(radioUpdateInterval){ clearInterval(radioUpdateInterval); }
+    var tick = 0;
+    radioUpdateInterval = setInterval(function(){
+      if(!ytPlayer || !ytPlayer.getCurrentTime) return;
+      var cur = ytPlayer.getCurrentTime();
+      var dur = ytPlayer.getDuration();
+      document.getElementById('radioTime').textContent = formatTime(cur) + ' / ' + formatTime(dur);
+      tick += 1;
+      if(tick % 5 === 0){
+        // 終盤(残り20秒未満)は見終わったとみなし、「続きから」の対象にしない
+        if(dur > 0 && (dur - cur) <= 20){
+          clearPosition(currentVideoId);
+        } else {
+          savePositionLocal(currentVideoId, cur);
+        }
+      }
+    }, 1000);
+  }
+  function stopRadioUpdateLoop(){
+    if(radioUpdateInterval){ clearInterval(radioUpdateInterval); radioUpdateInterval = null; }
+  }
+
+  // ---- ラジオ画面: 再生/一時停止ボタン(タップしても画面カバーは解除しない) ----
+  document.getElementById('radioPlayPauseBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(!ytPlayer || !ytPlayer.getPlayerState) return;
+    var state = ytPlayer.getPlayerState();
+    if(state === 1){
+      ytPlayer.pauseVideo();
+      syncPlayPauseUI(false);
+    } else {
+      ytPlayer.playVideo();
+      syncPlayPauseUI(true);
+    }
+  });
+
+  // ---- ラジオ画面: 次のチャプターまで飛ぶボタン ----
+  document.getElementById('radioNextChapterBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(!ytPlayer || !ytPlayer.getCurrentTime || currentChapters.length === 0) return;
+    var cur = ytPlayer.getCurrentTime();
+    var next = null;
+    for(var i = 0; i < currentChapters.length; i++){
+      if(currentChapters[i].time > cur + 0.5){ next = currentChapters[i]; break; }
+    }
+    if(next){
+      ytPlayer.seekTo(next.time, true);
+      if(ytPlayer.getPlayerState && ytPlayer.getPlayerState() !== 1){
+        ytPlayer.playVideo();
+        syncPlayPauseUI(true);
+      }
+    }
+  });
+
+  // ---- ラジオ画面: 前のチャプターに戻るボタン ----
+  document.getElementById('radioPrevChapterBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(!ytPlayer || !ytPlayer.getCurrentTime || currentChapters.length === 0) return;
+    var cur = ytPlayer.getCurrentTime();
+    // 現在再生中のチャプターのインデックスを求める
+    var curIdx = -1;
+    for(var i = 0; i < currentChapters.length; i++){
+      if(currentChapters[i].time <= cur + 0.5){ curIdx = i; } else { break; }
+    }
+    var target;
+    var withinFirst3s = curIdx >= 0 && (cur - currentChapters[curIdx].time < 3);
+    if(curIdx > 0 && withinFirst3s){
+      // 現在のチャプターに入って間もない場合は、本当に1つ前のチャプターへ戻る
+      target = currentChapters[curIdx - 1].time;
+    } else if(curIdx >= 0){
+      // ある程度経っている場合は、まず現在のチャプターの頭に戻す
+      // (音楽プレーヤーの「戻る」ボタンと同じ挙動)
+      target = currentChapters[curIdx].time;
+    } else {
+      target = 0;
+    }
+    ytPlayer.seekTo(target, true);
+    if(ytPlayer.getPlayerState && ytPlayer.getPlayerState() !== 1){
+      ytPlayer.playVideo();
+      syncPlayPauseUI(true);
+    }
+  });
+
+  function currentCooldownSeconds(){
+    return COOLDOWN_STEP * counter.count; // 1本目10s, 2本目20s, 3本目30s ...
+  }
+
+  var COOLDOWN_RING_CIRCUMFERENCE = 326.7; // r=52の円周(exp-ringと同じ)
+
+  function startCooldown(seconds, message, onDone){
+    var overlayEl = document.getElementById('cooldownOverlay');
+    var numEl = document.getElementById('cooldownNum');
+    var msgEl = document.getElementById('cooldownMsg');
+    var ringEl = document.getElementById('cooldownRingFg');
+    var total = seconds;
+    var remaining = seconds;
+
+    function renderRing(){
+      var frac = total > 0 ? Math.max(0, remaining / total) : 0;
+      ringEl.style.transition = 'none';
+      ringEl.style.strokeDashoffset = (COOLDOWN_RING_CIRCUMFERENCE * (1 - frac));
+      // 次のフレームからtransitionを効かせて、なめらかに減っていくように見せる
+      requestAnimationFrame(function(){
+        ringEl.style.transition = 'stroke-dashoffset 0.92s linear';
+      });
+    }
+
+    numEl.textContent = remaining;
+    msgEl.textContent = message;
+    overlayEl.classList.add('open');
+    renderRing();
+
+    var timer = setInterval(function(){
+      remaining -= 1;
+      if(remaining <= 0){
+        clearInterval(timer);
+        numEl.textContent = 0;
+        ringEl.style.strokeDashoffset = COOLDOWN_RING_CIRCUMFERENCE;
+        overlayEl.classList.remove('open');
+        if(typeof onDone === 'function'){ onDone(); }
+        return;
+      }
+      numEl.textContent = remaining;
+      ringEl.style.strokeDashoffset = (COOLDOWN_RING_CIRCUMFERENCE * (1 - remaining / total));
+    }, 1000);
+  }
+
+  document.getElementById('closeBtn').addEventListener('click', function(){
+    // 停止する前に現在の再生位置を保存しておく(次に選んだ時に続きから再生するため)
+    if(ytPlayer && ytPlayer.getCurrentTime && ytPlayer.getDuration){
+      var curPos = ytPlayer.getCurrentTime();
+      var totalDur = ytPlayer.getDuration();
+      if(totalDur > 0 && (totalDur - curPos) <= 20){
+        clearPosition(currentVideoId);
+      } else {
+        savePositionLocal(currentVideoId, curPos);
+      }
+      pushRemoteState();
+    }
+    releaseWakeLock();
+    if('mediaSession' in navigator){
+      try{ navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; } catch(e){}
+    }
+    document.getElementById('overlay').classList.remove('open');
+    markStopped();
+    stopRadioUpdateLoop();
+    setTimeout(function(){
+      if(ytPlayer && ytPlayer.stopVideo){ ytPlayer.stopVideo(); }
+      if(currentSource === 'search'){
+        startCooldown(currentCooldownSeconds(), counter.count + '本目を見ました。少し休憩してから次へ');
+      } else if(currentSource === 'gacha'){
+        startCooldown(15, 'おまかせ動画を閉じました。少し休憩してから次へ');
+      }
+    }, 300);
+  });
+
+  document.getElementById('searchBtn').addEventListener('click', doSearch);
+  queryInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ doSearch(); }
+  });
+
+  // ---- channels ----
+  function loadChannels(){
+    try{
+      var raw = localStorage.getItem(CHAN_STORAGE);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveChannels(list){
+    try{ localStorage.setItem(CHAN_STORAGE, JSON.stringify(list)); pushRemoteState(); } catch(e){}
+  }
+  var channels = loadChannels();
+
+  function renderChannels(){
+    var list = document.getElementById('channelList');
+    list.innerHTML = '';
+    if(channels.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.style.gridColumn = 'auto';
+      empty.textContent = 'まだ登録されていません。';
+      list.appendChild(empty);
+      return;
+    }
+    channels.forEach(function(c, idx){
+      var row = document.createElement('div');
+      row.className = 'chan-row';
+      var a = document.createElement('a');
+      a.href = c.url; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = (c.channelId ? '🎲 ' : '') + c.name;
+      var del = document.createElement('button');
+      del.textContent = '削除';
+      del.addEventListener('click', function(){
+        channels.splice(idx, 1);
+        saveChannels(channels);
+        renderChannels();
+      });
+      row.appendChild(a);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  // URLからチャンネルIDを特定する(おまかせで channelId 指定検索に使うため)
+  async function resolveChannelId(url){
+    var m = url.match(/\/channel\/(UC[a-zA-Z0-9_-]{10,})/);
+    if(m) return m[1]; // /channel/UCxxxx形式はそのままID
+    if(!apiKey) return null;
+    try{
+      var handleMatch = url.match(/\/@([a-zA-Z0-9_.-]+)/);
+      if(handleMatch){
+        var res1 = await fetch('https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=' + encodeURIComponent('@' + handleMatch[1]) + '&key=' + encodeURIComponent(apiKey));
+        var data1 = await res1.json();
+        if(data1.items && data1.items[0]){ return data1.items[0].id; }
+      }
+      var userMatch = url.match(/\/(?:c|user)\/([a-zA-Z0-9_.-]+)/);
+      if(userMatch){
+        var res2 = await fetch('https://www.googleapis.com/youtube/v3/channels?part=id&forUsername=' + encodeURIComponent(userMatch[1]) + '&key=' + encodeURIComponent(apiKey));
+        var data2 = await res2.json();
+        if(data2.items && data2.items[0]){ return data2.items[0].id; }
+        // レガシーusernameで見つからない場合、チャンネル名としてsearchで探す
+        var res3 = await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=1&q=' + encodeURIComponent(userMatch[1]) + '&key=' + encodeURIComponent(apiKey));
+        var data3 = await res3.json();
+        if(data3.items && data3.items[0]){ return data3.items[0].id.channelId; }
+      }
+    } catch(e){ /* 解決できなくても、ブックマークとしては登録できるようにする */ }
+    return null;
+  }
+
+  document.getElementById('addChannelBtn').addEventListener('click', async function(){
+    var errEl = document.getElementById('channelErr');
+    var name = document.getElementById('channelNameInput').value.trim();
+    var url = document.getElementById('channelUrlInput').value.trim();
+    if(!name || !url){
+      errEl.textContent = 'チャンネル名とURLの両方を入力してください';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!/^https?:\/\//.test(url)){
+      errEl.textContent = 'URLはhttp(s)://から始めてください';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    var addBtn = this;
+    addBtn.disabled = true;
+    var originalLabel = addBtn.textContent;
+    addBtn.textContent = '登録中…';
+    var channelId = await resolveChannelId(url);
+    channels.push({ name: name, url: url, channelId: channelId || null });
+    saveChannels(channels);
+    document.getElementById('channelNameInput').value = '';
+    document.getElementById('channelUrlInput').value = '';
+    if(!channelId){
+      errEl.textContent = 'チャンネルIDを特定できなかったため、ブックマークとしてのみ登録しました(おまかせの精度アップには使われません)';
+      errEl.style.display = 'block';
+    }
+    addBtn.disabled = false;
+    addBtn.textContent = originalLabel;
+    renderChannels();
+  });
+
+  // ---- 見たくないチャンネル(検索・おまかせの両方から除外) ----
+  function loadBlockedChannels(){
+    try{
+      var raw = localStorage.getItem(BLOCKED_CHAN_STORAGE);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveBlockedChannels(list){
+    try{ localStorage.setItem(BLOCKED_CHAN_STORAGE, JSON.stringify(list)); pushRemoteState(); } catch(e){}
+  }
+  var blockedChannels = loadBlockedChannels();
+
+  function renderBlockedChannels(){
+    var list = document.getElementById('blockedChannelList');
+    list.innerHTML = '';
+    if(blockedChannels.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.style.gridColumn = 'auto';
+      empty.textContent = 'まだ登録されていません。';
+      list.appendChild(empty);
+      return;
+    }
+    blockedChannels.forEach(function(c, idx){
+      var row = document.createElement('div');
+      row.className = 'chan-row';
+      var a = document.createElement('a');
+      a.href = c.url; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = (c.channelId ? '🚫 ' : '⚠️ ') + c.name;
+      var del = document.createElement('button');
+      del.textContent = '削除';
+      del.addEventListener('click', function(){
+        blockedChannels.splice(idx, 1);
+        saveBlockedChannels(blockedChannels);
+        renderBlockedChannels();
+      });
+      row.appendChild(a);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById('addBlockedChannelBtn').addEventListener('click', async function(){
+    var errEl = document.getElementById('blockedChannelErr');
+    var name = document.getElementById('blockedChannelNameInput').value.trim();
+    var url = document.getElementById('blockedChannelUrlInput').value.trim();
+    if(!name || !url){
+      errEl.textContent = 'チャンネル名とURLの両方を入力してください';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!/^https?:\/\//.test(url)){
+      errEl.textContent = 'URLはhttp(s)://から始めてください';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    var addBtn = this;
+    addBtn.disabled = true;
+    var originalLabel = addBtn.textContent;
+    addBtn.textContent = '登録中…';
+    var channelId = await resolveChannelId(url);
+    blockedChannels.push({ name: name, url: url, channelId: channelId || null });
+    saveBlockedChannels(blockedChannels);
+    document.getElementById('blockedChannelNameInput').value = '';
+    document.getElementById('blockedChannelUrlInput').value = '';
+    if(!channelId){
+      errEl.textContent = 'チャンネルIDを特定できなかったため、除外が効かない可能性があります(URLを見直してください)';
+      errEl.style.display = 'block';
+    }
+    addBtn.disabled = false;
+    addBtn.textContent = originalLabel;
+    renderBlockedChannels();
+  });
+
+  renderChannels();
+  renderBlockedChannels();
+})();
+</script>
+</body>
+</html>
