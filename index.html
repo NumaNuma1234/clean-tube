@@ -765,6 +765,15 @@
     </div>
     <button id="addChannelBtn" style="width:100%; margin-top:8px;">登録</button>
     <div class="err" id="channelErr" style="margin:8px 0 0;"></div>
+
+    <div class="label" style="margin-top:18px;">見たくないチャンネル(検索・おまかせの両方から除外されます)</div>
+    <div id="blockedChannelList"></div>
+    <div class="row" style="margin-top:8px;">
+      <input type="text" id="blockedChannelNameInput" placeholder="チャンネル名">
+      <input type="text" id="blockedChannelUrlInput" placeholder="チャンネルURL">
+    </div>
+    <button id="addBlockedChannelBtn" style="width:100%; margin-top:8px;">除外リストに追加</button>
+    <div class="err" id="blockedChannelErr" style="margin:8px 0 0;"></div>
   </div>
 
   <div class="err" id="queryErr"></div>
@@ -966,6 +975,7 @@
 
   var KEY_STORAGE = 'clean-tube-api-key';
   var CHAN_STORAGE = 'clean-tube-channels';
+  var BLOCKED_CHAN_STORAGE = 'clean-tube-blocked-channels';
   var COUNTER_STORAGE = 'clean-tube-daily-counter';
   var RESULT_COUNT = 8;
   var COOLDOWN_STEP = 10;      // 1本ごとに+10秒
@@ -975,7 +985,7 @@
   var FIREBASE_URL_STORAGE = 'clean-tube-firebase-url';
   var firebaseUrl = localStorage.getItem(FIREBASE_URL_STORAGE) || '';
   var SYNC_KEYS = [
-    'clean-tube-api-key','clean-tube-channels','clean-tube-daily-counter',
+    'clean-tube-api-key','clean-tube-channels','clean-tube-blocked-channels','clean-tube-daily-counter',
     'clean-tube-gacha-queries',
     'clean-tube-quick-tags','clean-tube-watched-ids','clean-tube-hidden-ids','clean-tube-daily-goal',
     'clean-tube-stamps','clean-tube-stamp-checked-date','clean-tube-total-exp',
@@ -1065,10 +1075,15 @@
     }
   }
 
-  // 「今後表示しない」指定の動画だけを除外する(視聴済みかどうかは候補選定に影響させない)
+  // 「今後表示しない」指定の動画・「見たくないチャンネル」の動画を候補から除外する
   function filterExcluded(items){
     var h = loadHidden();
-    return items.filter(function(item){ return h.indexOf(item.id) === -1; });
+    var blockedIds = loadBlockedChannels().filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
+    return items.filter(function(item){
+      if(h.indexOf(item.id) !== -1) return false;
+      if(item.snippet && blockedIds.indexOf(item.snippet.channelId) !== -1) return false;
+      return true;
+    });
   }
   // 「今後表示しない」指定の動画は検索でも復活させない(フォールバックなし)
   function filterUnwatched(items){
@@ -2286,7 +2301,83 @@
     renderChannels();
   });
 
+  // ---- 見たくないチャンネル(検索・おまかせの両方から除外) ----
+  function loadBlockedChannels(){
+    try{
+      var raw = localStorage.getItem(BLOCKED_CHAN_STORAGE);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveBlockedChannels(list){
+    try{ localStorage.setItem(BLOCKED_CHAN_STORAGE, JSON.stringify(list)); pushRemoteState(); } catch(e){}
+  }
+  var blockedChannels = loadBlockedChannels();
+
+  function renderBlockedChannels(){
+    var list = document.getElementById('blockedChannelList');
+    list.innerHTML = '';
+    if(blockedChannels.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.style.gridColumn = 'auto';
+      empty.textContent = 'まだ登録されていません。';
+      list.appendChild(empty);
+      return;
+    }
+    blockedChannels.forEach(function(c, idx){
+      var row = document.createElement('div');
+      row.className = 'chan-row';
+      var a = document.createElement('a');
+      a.href = c.url; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = (c.channelId ? '🚫 ' : '⚠️ ') + c.name;
+      var del = document.createElement('button');
+      del.textContent = '削除';
+      del.addEventListener('click', function(){
+        blockedChannels.splice(idx, 1);
+        saveBlockedChannels(blockedChannels);
+        renderBlockedChannels();
+      });
+      row.appendChild(a);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById('addBlockedChannelBtn').addEventListener('click', async function(){
+    var errEl = document.getElementById('blockedChannelErr');
+    var name = document.getElementById('blockedChannelNameInput').value.trim();
+    var url = document.getElementById('blockedChannelUrlInput').value.trim();
+    if(!name || !url){
+      errEl.textContent = 'チャンネル名とURLの両方を入力してください';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(!/^https?:\/\//.test(url)){
+      errEl.textContent = 'URLはhttp(s)://から始めてください';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    var addBtn = this;
+    addBtn.disabled = true;
+    var originalLabel = addBtn.textContent;
+    addBtn.textContent = '登録中…';
+    var channelId = await resolveChannelId(url);
+    blockedChannels.push({ name: name, url: url, channelId: channelId || null });
+    saveBlockedChannels(blockedChannels);
+    document.getElementById('blockedChannelNameInput').value = '';
+    document.getElementById('blockedChannelUrlInput').value = '';
+    if(!channelId){
+      errEl.textContent = 'チャンネルIDを特定できなかったため、除外が効かない可能性があります(URLを見直してください)';
+      errEl.style.display = 'block';
+    }
+    addBtn.disabled = false;
+    addBtn.textContent = originalLabel;
+    renderBlockedChannels();
+  });
+
   renderChannels();
+  renderBlockedChannels();
 })();
 </script>
 </body>
