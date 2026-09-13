@@ -730,7 +730,6 @@ box-shadow:0 2px 6px rgba(169,98,46,0.4);
 position:absolute; top:6px; left:6px; z-index:2;
 }
 .gacha-choice-hide-btn{
-position:absolute; top:6px; right:6px; z-index:3;
 width:24px; height:24px; border-radius:50%;
 background:var(--surface-2); border:1.5px solid var(--akane);
 color:var(--akane); font-size:11px;
@@ -739,7 +738,6 @@ box-shadow:0 2px 6px rgba(168,72,60,0.25), inset 0 1px 2px rgba(168,72,60,0.08);
 }
 .gacha-choice-hide-btn:active{ transform:scale(0.9); background:var(--akane); color:#fff; }
 .gacha-choice-block-channel-btn{
-position:absolute; top:36px; right:6px; z-index:3;
 width:24px; height:24px; border-radius:7px;
 background:var(--ai); border:1.5px solid var(--ai);
 color:#fff; font-size:11px;
@@ -747,6 +745,10 @@ display:flex; align-items:center; justify-content:center;
 box-shadow:0 2px 6px rgba(51,80,107,0.3), inset 0 1px 2px rgba(255,255,255,0.15);
 }
 .gacha-choice-block-channel-btn:active{ transform:scale(0.9); opacity:0.8; }
+.gacha-choice-actions{
+display:flex; flex-direction:column; gap:7px;
+flex:0 0 auto; align-self:center;
+}
 .gacha-choice-card.penalty{
 justify-content:center; gap:14px; cursor:default;
 background: linear-gradient(180deg, rgba(120,90,50,0.06), transparent);
@@ -1480,16 +1482,18 @@ var rareBadge = item.__rare ? '<span class="gacha-rare-badge">★ レア</span>'
 return (
 rareBadge +
 '<span class="gacha-choice-num">' + (idx + 1) + '</span>' +
+'<img src="' + thumb + '" alt="">' +
+'<div class="meta">' +
+'<div class="title">' + escapeHtml(snippet.title) + '</div>' +
+'<div class="channel">' + escapeHtml(snippet.channelTitle) + '</div>' +
+'</div>' +
+'<div class="gacha-choice-actions">' +
 '<button class="gacha-choice-hide-btn" data-idx="' + idx + '" aria-label="今後表示しない" title="今後表示しない">' +
 '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="3" x2="21" y2="21"></line></svg>' +
 '</button>' +
 '<button class="gacha-choice-block-channel-btn" data-idx="' + idx + '" aria-label="このチャンネルは表示しない" title="このチャンネルは表示しない">' +
 '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 0.6 5"></path><path d="M17 17H3s3-2 3-9c0-.63.1-1.2.3-1.7"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>' +
 '</button>' +
-'<img src="' + thumb + '" alt="">' +
-'<div class="meta">' +
-'<div class="title">' + escapeHtml(snippet.title) + '</div>' +
-'<div class="channel">' + escapeHtml(snippet.channelTitle) + '</div>' +
 '</div>'
 );
 }
