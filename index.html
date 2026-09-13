@@ -687,6 +687,15 @@ display:flex; align-items:center; justify-content:center;
 box-shadow:0 2px 6px rgba(168,72,60,0.25), inset 0 1px 2px rgba(168,72,60,0.08);
 }
 .gacha-choice-hide-btn:active{ transform:scale(0.9); background:var(--akane); color:#fff; }
+.gacha-choice-block-channel-btn{
+position:absolute; top:36px; right:6px; z-index:3;
+width:24px; height:24px; border-radius:50%;
+background:var(--surface-2); border:1.5px solid var(--text-muted);
+color:var(--text-muted); font-size:11px;
+display:flex; align-items:center; justify-content:center;
+box-shadow:0 2px 6px rgba(58,42,26,0.15);
+}
+.gacha-choice-block-channel-btn:active{ transform:scale(0.9); background:var(--text-muted); color:#fff; }
 .gacha-choice-card.penalty{
 justify-content:center; gap:14px; cursor:default;
 background: linear-gradient(180deg, rgba(120,90,50,0.06), transparent);
@@ -913,12 +922,12 @@ body{ max-width:min(94vw, 760px); margin:0 auto; border-left:0.5px solid var(--b
 <div class="msg" style="font-size:15px; font-weight:600; margin-bottom:2px;">もう見なくていい?</div>
 <div class="msg">最後まで見終わりました。似た動画を今後の候補から減らしますか?</div>
 <div class="end-prompt-btn-row">
-<button class="end-prompt-btn end-prompt-maru" id="endPromptYesBtn" aria-label="もう見なくていい">
-<span class="end-prompt-icon">○</span>
+<button class="end-prompt-btn end-prompt-batsu" id="endPromptYesBtn" aria-label="もう見なくていい">
+<span class="end-prompt-icon">✕</span>
 <span class="end-prompt-label">もう見なくていい</span>
 </button>
-<button class="end-prompt-btn end-prompt-batsu" id="endPromptNoBtn" aria-label="また見たい">
-<span class="end-prompt-icon">✕</span>
+<button class="end-prompt-btn end-prompt-maru" id="endPromptNoBtn" aria-label="また見たい">
+<span class="end-prompt-icon">○</span>
 <span class="end-prompt-label">また見たい</span>
 </button>
 </div>
@@ -1416,6 +1425,7 @@ return (
 rareBadge +
 '<span class="gacha-choice-num">' + (idx + 1) + '</span>' +
 '<button class="gacha-choice-hide-btn" data-idx="' + idx + '" aria-label="今後表示しない" title="今後表示しない">🚫</button>' +
+'<button class="gacha-choice-block-channel-btn" data-idx="' + idx + '" aria-label="このチャンネルは表示しない" title="このチャンネルは表示しない">⊘</button>' +
 '<img src="' + thumb + '" alt="">' +
 '<div class="meta">' +
 '<div class="title">' + escapeHtml(snippet.title) + '</div>' +
@@ -1443,6 +1453,11 @@ hideBtn.addEventListener('click', function(e){
 e.stopPropagation();
 hideGachaCandidate(idx);
 });
+var blockChBtn = el.querySelector('.gacha-choice-block-channel-btn');
+blockChBtn.addEventListener('click', function(e){
+e.stopPropagation();
+blockGachaCandidateChannel(idx);
+});
 }
 function showGachaChoices(items){
 currentGachaPicks = items.slice();
@@ -1464,7 +1479,7 @@ document.getElementById('gachaChoiceOverlay').classList.remove('open');
 async function fetchGachaReplacement(){
 while(gachaReservePool.length > 0){
 var cand = gachaReservePool.shift();
-if(!isExcludedId(cand.id) && !currentGachaPicks.some(function(p){ return p && p.id === cand.id; })){
+if(!isExcludedId(cand.id) && !isBlockedChannelItem(cand) && !currentGachaPicks.some(function(p){ return p && p.id === cand.id; })){
 return cand;
 }
 }
@@ -1490,6 +1505,10 @@ return ordered[0];
 function isExcludedId(id){
 return loadHidden().indexOf(id) !== -1;
 }
+function isBlockedChannelItem(item){
+if(!item || !item.snippet || !item.snippet.channelId) return false;
+return blockedChannels.some(function(c){ return c.channelId === item.snippet.channelId; });
+}
 var GACHA_HIDE_PENALTY_SECONDS = 15;
 var GACHA_PENALTY_RING_CIRC = 169.6;
 function renderGachaPenaltySlot(card, seconds){
@@ -1503,6 +1522,25 @@ card.innerHTML =
 '<span class="gacha-penalty-num">' + seconds + '</span>' +
 '</div>' +
 '<div class="gacha-penalty-label">🚫 非表示にしました<br>次の候補まで少し待ちます</div>';
+}
+async function blockGachaCandidateChannel(idx){
+var item = currentGachaPicks[idx];
+if(!item) return;
+var channelId = item.snippet.channelId;
+var channelTitle = item.snippet.channelTitle;
+if(channelId){
+var already = blockedChannels.some(function(c){ return c.channelId === channelId; });
+if(!already){
+blockedChannels.push({
+name: channelTitle || '(チャンネル名不明)',
+url: 'https://www.youtube.com/channel/' + channelId,
+channelId: channelId
+});
+saveBlockedChannels(blockedChannels);
+renderBlockedChannels();
+}
+}
+await hideGachaCandidate(idx);
 }
 async function hideGachaCandidate(idx){
 var item = currentGachaPicks[idx];
