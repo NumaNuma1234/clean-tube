@@ -562,6 +562,24 @@
   .cooldown-unit{ font-family:'DotGothic16', monospace; font-size:10px; color:var(--text-muted); letter-spacing:0.2em; }
   .cooldown-overlay .msg{ font-size:13.5px; color:var(--text-secondary); text-align:center; line-height:1.65; }
 
+  #endPromptOverlay{ z-index:1100; } /* 動画オーバーレイ(z-index:1000)より上に出す */
+  .end-prompt-btn-row{ display:flex; gap:14px; margin-top:8px; }
+  .end-prompt-btn{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    width:112px; padding:14px 6px 12px; border-radius:18px;
+    border:1.5px solid var(--border);
+    background: var(--surface-2);
+    box-shadow: 0 6px 14px rgba(58,42,26,0.1);
+    transition: transform 0.15s ease;
+  }
+  .end-prompt-btn:active{ transform:scale(0.95); }
+  .end-prompt-icon{ font-size:26px; line-height:1; font-weight:700; }
+  .end-prompt-label{ font-size:11.5px; color:var(--text-secondary); line-height:1.3; }
+  .end-prompt-maru .end-prompt-icon{ color:#3D7A4C; }
+  .end-prompt-maru{ border-color:#3D7A4C; }
+  .end-prompt-batsu .end-prompt-icon{ color:var(--accent); }
+  .end-prompt-batsu{ border-color:var(--accent); }
+
   .gacha-choice-overlay{
     position:fixed; inset:0; z-index:1200;
     display:none; align-items:flex-end; justify-content:center;
@@ -895,6 +913,24 @@
         <button class="radio-speed-btn" data-speed="2">2.0x</button>
       </div>
       <div class="note">画面を見えにくくしています(タップで解除)</div>
+    </div>
+  </div>
+
+  <div class="cooldown-overlay" id="endPromptOverlay">
+    <div class="cooldown-card">
+      <div class="cooldown-icon">🤔</div>
+      <div class="msg" style="font-size:15px; font-weight:600; margin-bottom:2px;">もう見なくていい?</div>
+      <div class="msg">最後まで見終わりました。似た動画を今後の候補から減らしますか?</div>
+      <div class="end-prompt-btn-row">
+        <button class="end-prompt-btn end-prompt-maru" id="endPromptYesBtn" aria-label="もう見なくていい">
+          <span class="end-prompt-icon">○</span>
+          <span class="end-prompt-label">もう見なくていい</span>
+        </button>
+        <button class="end-prompt-btn end-prompt-batsu" id="endPromptNoBtn" aria-label="また見たい">
+          <span class="end-prompt-icon">✕</span>
+          <span class="end-prompt-label">また見たい</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1793,11 +1829,28 @@
 
   function handlePlayerStateChange(state){
     // state: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
-    if(state === 0){ // ended: close before the "up next" screen can be tapped
+    if(state === 0){ // ended: 閉じる前に「もう見なくていい?」を確認する
       clearPosition(currentVideoId); // 最後まで見た動画は「続きから」の対象から外す
-      document.getElementById('closeBtn').click();
+      showEndPrompt();
     }
   }
+
+  // ---- 最後まで見終わった動画: 「もう見なくていい?」の○✕確認 ----
+  var endPromptTimer = null;
+  function showEndPrompt(){
+    document.getElementById('endPromptOverlay').classList.add('open');
+    clearTimeout(endPromptTimer);
+    // 無反応のまま放置された場合は「また見たい」扱いにして自動で閉じる
+    endPromptTimer = setTimeout(function(){ resolveEndPrompt(false); }, 8000);
+  }
+  function resolveEndPrompt(hideIt){
+    clearTimeout(endPromptTimer);
+    document.getElementById('endPromptOverlay').classList.remove('open');
+    if(hideIt && currentVideoId){ markHidden(currentVideoId); } // 今後の候補の優先順位を下げる(=候補から外す)
+    document.getElementById('closeBtn').click();
+  }
+  document.getElementById('endPromptYesBtn').addEventListener('click', function(){ resolveEndPrompt(true); });
+  document.getElementById('endPromptNoBtn').addEventListener('click', function(){ resolveEndPrompt(false); });
 
   function loadIntoPlayer(id, startSeconds){
     if(!apiReady || !ytPlayer || !ytPlayer.loadVideoById){ pendingPlay = { id: id, startSeconds: startSeconds }; return; }
