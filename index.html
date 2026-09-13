@@ -851,6 +851,13 @@
       <div class="radio-title" id="radioTitle">再生中の音声</div>
       <div class="radio-time" id="radioTime">00:00 / 00:00</div>
       <div class="radio-ctrl-row">
+        <button class="radio-chapter-btn" id="radioPrevChapterBtn" aria-label="前のチャプターへ" style="display:none;">
+          <svg class="ctrl-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M19 5.5v13a1 1 0 0 1-1.5.87l-9.5-6.5a1 1 0 0 1 0-1.74l9.5-6.5A1 1 0 0 1 19 5.5z" fill="currentColor"></path>
+            <rect x="4.6" y="5" width="2.4" height="14" rx="1" fill="currentColor"></rect>
+          </svg>
+          <span class="chapter-btn-label">前の章</span>
+        </button>
         <div class="radio-ctrl-wrap" id="radioCtrlWrap">
           <button class="radio-ctrl-btn" id="radioPlayPauseBtn" aria-label="再生/一時停止">
             <svg class="ctrl-icon icon-pause" viewBox="0 0 24 24" width="42" height="42" aria-hidden="true">
@@ -1357,7 +1364,7 @@
     var spinner = document.getElementById('spinner');
     spinner.style.display = 'block';
     try{
-      var items = await fetchVideos(pickedQuery, 25);
+      var items = await fetchVideos(pickedQuery, 30);
       items = items.filter(function(item){
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
@@ -1370,7 +1377,7 @@
       }
       // fetchVideosの時点で既に関連度順(YouTubeの検索アルゴリズム順)になっているので、
       // 再生回数で並べ替えて精度を落とさないよう、その順番をそのまま使う
-      var topN = items.slice(0, Math.min(15, items.length));
+      var topN = items.slice(0, Math.min(30, items.length));
       // 登録チャンネルの動画を先頭側に寄せて、選択肢に優先的に入るようにする
       var favMatches = topN.filter(function(item){ return favIds.indexOf(item.snippet.channelId) !== -1; });
       var others = topN.filter(function(item){ return favIds.indexOf(item.snippet.channelId) === -1; });
@@ -1466,7 +1473,7 @@
     // 予備プールが尽きたら、同じクエリで新たに取得しに行く
     if(!gachaCurrentQuery) return null;
     try{
-      var items = await fetchVideos(gachaCurrentQuery, 25);
+      var items = await fetchVideos(gachaCurrentQuery, 30);
       items = items.filter(function(item){
         return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
       });
@@ -1475,7 +1482,7 @@
       });
       if(items.length === 0) return null;
       // 関連度順(fetchVideosの並び)をベースに、登録チャンネルの動画を優先する
-      var topN = items.slice(0, Math.min(15, items.length));
+      var topN = items.slice(0, Math.min(30, items.length));
       var favIds2 = channels.filter(function(c){ return c.channelId; }).map(function(c){ return c.channelId; });
       var favMatches2 = topN.filter(function(item){ return favIds2.indexOf(item.snippet.channelId) !== -1; });
       var others2 = topN.filter(function(item){ return favIds2.indexOf(item.snippet.channelId) === -1; });
@@ -1898,6 +1905,7 @@
     currentVideoId = id;
     currentChapters = parseChaptersFromDescription(description || '');
     document.getElementById('radioNextChapterBtn').style.display = currentChapters.length > 0 ? '' : 'none';
+    document.getElementById('radioPrevChapterBtn').style.display = currentChapters.length > 0 ? '' : 'none';
     var countsToward = (source === 'search');
 
     if(countsToward){
@@ -2037,6 +2045,35 @@
         ytPlayer.playVideo();
         syncPlayPauseUI(true);
       }
+    }
+  });
+
+  // ---- ラジオ画面: 前のチャプターに戻るボタン ----
+  document.getElementById('radioPrevChapterBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(!ytPlayer || !ytPlayer.getCurrentTime || currentChapters.length === 0) return;
+    var cur = ytPlayer.getCurrentTime();
+    // 現在再生中のチャプターのインデックスを求める
+    var curIdx = -1;
+    for(var i = 0; i < currentChapters.length; i++){
+      if(currentChapters[i].time <= cur + 0.5){ curIdx = i; } else { break; }
+    }
+    var target;
+    var withinFirst3s = curIdx >= 0 && (cur - currentChapters[curIdx].time < 3);
+    if(curIdx > 0 && withinFirst3s){
+      // 現在のチャプターに入って間もない場合は、本当に1つ前のチャプターへ戻る
+      target = currentChapters[curIdx - 1].time;
+    } else if(curIdx >= 0){
+      // ある程度経っている場合は、まず現在のチャプターの頭に戻す
+      // (音楽プレーヤーの「戻る」ボタンと同じ挙動)
+      target = currentChapters[curIdx].time;
+    } else {
+      target = 0;
+    }
+    ytPlayer.seekTo(target, true);
+    if(ytPlayer.getPlayerState && ytPlayer.getPlayerState() !== 1){
+      ytPlayer.playVideo();
+      syncPlayPauseUI(true);
     }
   });
 
