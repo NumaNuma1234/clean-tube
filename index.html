@@ -746,11 +746,12 @@
       <input type="password" id="apiKeyInput" placeholder="APIキーを貼り付け">
       <button id="saveKeyBtn">保存</button>
     </div>
-    <div class="label">🎲 ガチャの候補(カンマ区切り)</div>
-    <div class="row" style="margin-bottom:14px;">
-      <input type="text" id="gachaQueryInput" placeholder="例: ゆる言語学ラジオ,本要約チャンネル">
+    <div class="label">🎲 ガチャの追加タグ(任意・カンマ区切り)</div>
+    <div class="row" style="margin-bottom:6px;">
+      <input type="text" id="gachaQueryInput" placeholder="空欄でもOK。例: ゆる言語学ラジオ,本要約チャンネル">
       <button id="saveGachaBtn">保存</button>
     </div>
+    <div class="label" style="margin-top:0; margin-bottom:14px; opacity:0.65; font-size:11px;">未入力でも、標準で「本の要約・生き方が変わる系」のテーマから選ばれます</div>
     <div class="label">1日の通常視聴回数の目標(検索から再生した分のみ)</div>
     <div class="row" style="margin-bottom:14px;">
       <input type="number" id="dailyGoalInput" min="1" max="20" value="3">
@@ -1327,18 +1328,47 @@
   });
 
   // ---- gacha query list ----
+  // 標準で組み込まれている「本の要約・生き方や考え方が変わる系」の検索テーマ。
+  // ユーザーが自分でタグを何も登録していなくても、ここから選ばれるようにする。
+  var GROWTH_QUERIES = [
+    '本要約 おすすめ',
+    'ビジネス書 要約 解説',
+    '自己啓発 名著 解説',
+    '人生を変える考え方',
+    'マインドセット 変える 方法',
+    '習慣化 コツ 解説',
+    '哲学 わかりやすい 解説',
+    '心理学 わかりやすい 解説',
+    '教養 雑学 深掘り 解説',
+    '生き方 名言 解説',
+    '豊かな人生 考え方',
+    '思考法 わかりやすい',
+    'お金の知識 わかりやすい',
+    '人間関係 心理学 解説',
+    '人生 変わった 一冊'
+  ];
   var GACHA_QUERY_STORAGE = 'clean-tube-gacha-queries';
-  var gachaQueries = (localStorage.getItem(GACHA_QUERY_STORAGE) || 'ゆる言語学ラジオ,本要約チャンネル')
+  var customGachaQueries = (localStorage.getItem(GACHA_QUERY_STORAGE) || '')
     .split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-  document.getElementById('gachaQueryInput').value = gachaQueries.join(',');
+  document.getElementById('gachaQueryInput').value = customGachaQueries.join(',');
+  function buildGachaQueries(){
+    // 自分で追加したタグ + 標準の「有益系」テーマを両方使う(重複は除く)
+    var combined = customGachaQueries.concat(GROWTH_QUERIES);
+    var seen = {};
+    return combined.filter(function(q){
+      if(seen[q]) return false;
+      seen[q] = true;
+      return true;
+    });
+  }
+  var gachaQueries = buildGachaQueries();
   document.getElementById('saveGachaBtn').addEventListener('click', function(){
     var v = document.getElementById('gachaQueryInput').value.trim();
-    if(v){
-      gachaQueries = v.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-      localStorage.setItem(GACHA_QUERY_STORAGE, gachaQueries.join(','));
-      pushRemoteState();
-      document.getElementById('settingsCard').classList.remove('open');
-    }
+    customGachaQueries = v ? v.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+    localStorage.setItem(GACHA_QUERY_STORAGE, customGachaQueries.join(','));
+    gachaQueries = buildGachaQueries();
+    pushRemoteState();
+    document.getElementById('settingsCard').classList.remove('open');
   });
 
   var gachaCurrentQuery = '';
