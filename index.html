@@ -202,16 +202,7 @@ transition: transform 0.15s ease;
 }
 .result-item:active{ transform:scale(0.98); }
 .result-item img{ width:100%; aspect-ratio:16/10; object-fit:cover; display:block; }
-.result-item .meta{ position:relative; padding:14px 8px 8px; }
-.result-item .meta::before{
-content:'';
-position:absolute; top:0; left:0; right:0; height:13px;
-background:
-radial-gradient(circle at 21% 50%, rgba(255,255,255,0.65) 0, rgba(255,255,255,0.65) 2.4px, transparent 3px),
-radial-gradient(circle at 79% 50%, rgba(255,255,255,0.65) 0, rgba(255,255,255,0.65) 2.4px, transparent 3px),
-repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 4px),
-linear-gradient(180deg, #3C2A19, #241608);
-}
+.result-item .meta{ padding:6px 8px 8px; }
 .result-item .title{
 font-family:'DotGothic16', monospace;
 font-size:11.5px; font-weight:400; line-height:1.35; color:var(--text);
@@ -219,6 +210,22 @@ letter-spacing:0.01em;
 white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .result-item .channel{ font-size:10px; color:var(--text-muted); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.result-item .reel-strip{
+position:relative; height:20px; margin-top:6px;
+background: linear-gradient(180deg, #2c1d10, #180f06);
+border-top:1px solid rgba(0,0,0,0.5);
+box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+}
+.result-item .reel-strip::before, .result-item .reel-strip::after{
+content:''; position:absolute; top:50%; width:13px; height:13px;
+transform:translateY(-50%);
+border-radius:50%;
+background:
+radial-gradient(circle, rgba(255,255,255,0.9) 0 1.6px, transparent 1.8px),
+radial-gradient(circle, transparent 0 4.2px, rgba(255,255,255,0.55) 4.2px 5.3px, transparent 5.5px);
+}
+.result-item .reel-strip::before{ left:20%; margin-left:-6.5px; }
+.result-item .reel-strip::after{ right:20%; margin-right:-6.5px; }
 .empty{ font-size:13px; color:var(--text-muted); grid-column:1/-1; }
 .exp-panel.hidden{ display:none; }
 .exp-panel{
@@ -1765,7 +1772,8 @@ el.innerHTML =
 '<div class="meta">' +
 '<div class="title">' + escapeHtml(snippet.title) + '</div>' +
 '<div class="channel">' + escapeHtml(snippet.channelTitle) + '</div>' +
-'</div>';
+'</div>' +
+'<div class="reel-strip"></div>';
 el.addEventListener('click', function(){ playVideo(item.id, 'search', snippet.title, snippet.description, snippet.channelId, snippet.channelTitle); });
 container.appendChild(el);
 });
