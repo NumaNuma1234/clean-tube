@@ -2516,4 +2516,64 @@ list.innerHTML = '';
 if(blockedChannels.length === 0){
 var empty = document.createElement('div');
 empty.className = 'empty';
-empty.st
+empty.style.gridColumn = 'auto';
+empty.textContent = 'まだ登録されていません。';
+list.appendChild(empty);
+return;
+}
+blockedChannels.forEach(function(c, idx){
+var row = document.createElement('div');
+row.className = 'chan-row';
+var a = document.createElement('a');
+a.href = c.url; a.target = '_blank'; a.rel = 'noopener';
+a.textContent = (c.channelId ? '🚫 ' : '⚠️ ') + c.name;
+var del = document.createElement('button');
+del.textContent = '削除';
+del.addEventListener('click', function(){
+blockedChannels.splice(idx, 1);
+saveBlockedChannels(blockedChannels);
+renderBlockedChannels();
+});
+row.appendChild(a);
+row.appendChild(del);
+list.appendChild(row);
+});
+}
+document.getElementById('addBlockedChannelBtn').addEventListener('click', async function(){
+var errEl = document.getElementById('blockedChannelErr');
+var name = document.getElementById('blockedChannelNameInput').value.trim();
+var url = document.getElementById('blockedChannelUrlInput').value.trim();
+if(!name || !url){
+errEl.textContent = 'チャンネル名とURLの両方を入力してください';
+errEl.style.display = 'block';
+return;
+}
+if(!/^https?:\/\//.test(url)){
+errEl.textContent = 'URLはhttp(s)://から始めてください';
+errEl.style.display = 'block';
+return;
+}
+errEl.style.display = 'none';
+var addBtn = this;
+addBtn.disabled = true;
+var originalLabel = addBtn.textContent;
+addBtn.textContent = '登録中…';
+var channelId = await resolveChannelId(url);
+blockedChannels.push({ name: name, url: url, channelId: channelId || null });
+saveBlockedChannels(blockedChannels);
+document.getElementById('blockedChannelNameInput').value = '';
+document.getElementById('blockedChannelUrlInput').value = '';
+if(!channelId){
+errEl.textContent = 'チャンネルIDを特定できなかったため、除外が効かない可能性があります(URLを見直してください)';
+errEl.style.display = 'block';
+}
+addBtn.disabled = false;
+addBtn.textContent = originalLabel;
+renderBlockedChannels();
+});
+renderChannels();
+renderBlockedChannels();
+})();
+</script>
+</body>
+</html>
