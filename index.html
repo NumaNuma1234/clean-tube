@@ -1140,7 +1140,7 @@ var favIds = channels.filter(function(c){ return c.channelId; }).map(function(c)
 var spinner = document.getElementById('spinner');
 spinner.style.display = 'block';
 try{
-var items = await fetchVideos(pickedQuery, 30);
+var items = await fetchVideos(LOCKED_CHANNEL_HANDLE ? '' : pickedQuery, 30);
 items = items.filter(function(item){
 return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
 });
@@ -1262,7 +1262,7 @@ return cand;
 }
 if(!gachaCurrentQuery) return null;
 try{
-var items = await fetchVideos(gachaCurrentQuery, 30);
+var items = await fetchVideos(LOCKED_CHANNEL_HANDLE ? '' : gachaCurrentQuery, 30);
 items = items.filter(function(item){
 return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
 });
@@ -1412,11 +1412,37 @@ return s.replace(/[&<>"']/g, function(c){
 return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
 });
 }
+var LOCKED_CHANNEL_HANDLE = '@motocrab-love'; // 空文字にすると全体検索に戻る
+var LOCKED_CHANNEL_STORAGE = 'clean-tube-locked-channel-id:' + LOCKED_CHANNEL_HANDLE;
+var lockedChannelId = null;
+async function getLockedChannelId(){
+if(!LOCKED_CHANNEL_HANDLE) return null;
+if(lockedChannelId) return lockedChannelId;
+try{
+var cached = localStorage.getItem(LOCKED_CHANNEL_STORAGE);
+if(cached){ lockedChannelId = cached; return cached; }
+}catch(e){}
+var res = await fetch('https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=' + encodeURIComponent(LOCKED_CHANNEL_HANDLE) + '&key=' + encodeURIComponent(apiKey));
+var data = await res.json();
+if(data.error) throw new Error(data.error.message || 'APIエラー');
+if(!data.items || !data.items[0]) throw new Error('チャンネルが見つかりませんでした: ' + LOCKED_CHANNEL_HANDLE);
+lockedChannelId = data.items[0].id;
+try{ localStorage.setItem(LOCKED_CHANNEL_STORAGE, lockedChannelId); }catch(e){}
+return lockedChannelId;
+}
 async function fetchVideos(q, maxResults, channelId){
+var chanOrder = 'date';
+var lockId = await getLockedChannelId();
+if(lockId){
+channelId = lockId;
+maxResults = 50;
+if(q){ chanOrder = 'relevance'; }
+else{ chanOrder = ['date','viewCount','rating'][Math.floor(Math.random() * 3)]; }
+}
 var searchUrl = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults='
 + maxResults + '&regionCode=JP&relevanceLanguage=ja&key=' + encodeURIComponent(apiKey);
 if(channelId){
-searchUrl += '&channelId=' + encodeURIComponent(channelId) + '&order=date';
+searchUrl += '&channelId=' + encodeURIComponent(channelId) + '&order=' + chanOrder;
 if(q){ searchUrl += '&q=' + encodeURIComponent(q); }
 } else {
 searchUrl += '&q=' + encodeURIComponent(q);
@@ -1518,7 +1544,7 @@ document.getElementById('settingsCard').classList.add('open');
 document.getElementById('statsPanel').classList.remove('hidden');
 return;
 }
-if(!q){
+if(!q && !LOCKED_CHANNEL_HANDLE){
 errEl.textContent = 'キーワードを入力してください';
 errEl.style.display = 'block';
 document.getElementById('statsPanel').classList.remove('hidden');
