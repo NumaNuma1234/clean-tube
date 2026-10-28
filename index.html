@@ -1142,7 +1142,7 @@ spinner.style.display = 'block';
 try{
 var items = await fetchVideos(LOCKED_CHANNEL_HANDLE ? '' : pickedQuery, 30);
 items = items.filter(function(item){
-return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
+return parseDuration(item.contentDetails.duration) >= (LOCKED_CHANNEL_HANDLE ? 60 : MIN_DURATION_SECONDS);
 });
 items = filterExcluded(items);
 spinner.style.display = 'none';
@@ -1264,7 +1264,7 @@ if(!gachaCurrentQuery) return null;
 try{
 var items = await fetchVideos(LOCKED_CHANNEL_HANDLE ? '' : gachaCurrentQuery, 30);
 items = items.filter(function(item){
-return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
+return parseDuration(item.contentDetails.duration) >= (LOCKED_CHANNEL_HANDLE ? 60 : MIN_DURATION_SECONDS);
 });
 items = filterExcluded(items).filter(function(item){
 return !currentGachaPicks.some(function(p){ return p && p.id === item.id; });
@@ -1557,7 +1557,7 @@ var items = await fetchVideos(q, 25);
 if(myRequestId !== searchRequestId){ return; }
 spinner.style.display = 'none';
 items = items.filter(function(item){
-return parseDuration(item.contentDetails.duration) >= MIN_DURATION_SECONDS;
+return parseDuration(item.contentDetails.duration) >= (LOCKED_CHANNEL_HANDLE ? 60 : MIN_DURATION_SECONDS);
 });
 items = filterUnwatched(items);
 searchReservePool = items.slice(RESULT_COUNT);
